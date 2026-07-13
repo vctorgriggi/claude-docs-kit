@@ -62,12 +62,24 @@ código é alterado durante a sincronização.
 | `PLAN.md`            | Execução fatiada em fases; tarefas com módulo, testes e aceitação | Quando há trabalho à frente                  |
 | `ROADMAP.md`         | Direções sem promessa                                             | Repositório público ou ambições além do SPEC |
 | `docs/<tema>.md`     | Conhecimento caro e durável (spikes, APIs frágeis)                | Quando um tema acumula                       |
-| `docs/README.md`     | Mapa da documentação                                              | docs/ com 3 ou mais arquivos                 |
+| `docs/README.md`     | Mapa da documentação                                              | docs/ passa de cerca de 3 arquivos           |
 | `<pacote>/CLAUDE.md` | Recipe local de pacote                                            | Monorepos                                    |
 | `AGENTS.md`          | Espelho curto para outros agentes                                 | Quando coexistem outros agentes              |
 
 O kit não gera placeholders; um arquivo só é criado quando há razão para ele
 existir.
+
+## Veja funcionando
+
+Transcrições anotadas em [`examples/`](examples/): a entrevista do Modo A com
+proposta, gate e checagens de entrega
+([01](examples/01-modo-a-cli-nova.md)); a varredura do Modo B com o relatório
+em três listas, o gap virando pergunta e as 3 rotas para documentação
+existente ([02](examples/02-modo-b-varredura.md)); e uma `/rodada` movendo um
+item de "Planejado" para o corpo do SPEC sem apagar história
+([03](examples/03-rodada.md)). As sessões rodam sobre os repositórios-amostra
+de `examples/fixtures/` — o doc-set preenchido de `fixtures/linkcheck/` é a
+referência viva da gramática.
 
 ## A gramática (resumo)
 
@@ -90,10 +102,27 @@ existir.
 - pt-BR nos documentos de agente (vocabulário técnico em inglês); língua do
   público nos documentos públicos.
 
+## Limitações conhecidas
+
+- A gramática é opinativa e fixa pt-BR para documentos de agente (regra 10) —
+  escolha de design, não defeito; limita o reuso do kit a projetos lusófonos.
+- O fluxo depende de aprovação humana em cada gate; nada é gerado nem
+  verificado de forma autônoma.
+- A cópia instalada em `~/.claude/commands/` não se atualiza sozinha após
+  editar a fonte (ver Personalização).
+- As checagens de entrega são auto-aplicadas pelo agente; não há verificação
+  automatizada externa de que a documentação gerada obedece à gramática.
+- Os comandos usam o formato clássico (`~/.claude/commands/`), não o formato
+  mais recente de skills; se o formato clássico for depreciado, o kit precisa
+  ser portado.
+
 ## Personalização
 
 Os comandos são arquivos markdown. A fonte da verdade é a seção "A gramática da
-casa" em `commands/bootstrap.md`; para mudar uma convenção, edite ali e rode
+casa" em `commands/bootstrap.md`; para mudar uma convenção, edite ali,
+incremente a versão da gramática declarada no topo da seção, confira
+[`examples/regressao-da-gramatica.md`](examples/regressao-da-gramatica.md)
+(resultado divergente que não era a intenção da edição é deriva) e rode
 `./install.sh` novamente (a cópia em `~/.claude/commands/` não se atualiza
 sozinha). Renomear um comando é renomear o arquivo: `rodada.md` vira `/rodada`,
 `sync.md` viraria `/sync`.

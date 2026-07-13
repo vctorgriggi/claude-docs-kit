@@ -18,7 +18,9 @@ do histórico do git ou desta conversa.
 1. Leia CLAUDE.md, SPEC.md e PLAN.md (e ROADMAP e docs/, se existirem).
 2. Levante o que mudou desde a última sincronização: `git log --oneline` desde
    a última tag ou marco (ou desde a última rodada mencionada nos documentos);
-   consulte diffs quando um commit não se explicar sozinho.
+   consulte diffs quando um commit não se explicar sozinho. Sem repositório
+   git, apoie-se apenas no diff de arquivos e nesta conversa, e diga isso ao
+   usuário.
 3. Monte a lista do que aconteceu e pergunte ao usuário o que dela foi decisão
    deliberada (em oposição a acaso do caminho) e se houve decisões que não
    aparecem no código: cortes, adiamentos, resultados de pesquisa.
@@ -44,12 +46,16 @@ do histórico do git ou desta conversa.
 
 - Apagar histórico. Decisão resolvida permanece, anotada; tarefa cortada
   permanece, explicada.
-- Corrigir código durante a sincronização. Gap encontrado vai para o
-  inventário, não para o editor.
+- Corrigir código durante a sincronização. Quando doc e código divergem, o
+  código é a verdade: atualize o doc (§2); dívida deliberada confirmada entra
+  em "Gaps conhecidos" (§2); nunca edite código aqui.
 - Registrar intenção que o usuário não confirmou nesta conversa.
 - Reescrever seções que não mudaram. Mantenha o diff mínimo.
 
 ## 4. Feche
+
+Antes do resumo, aplique as "Checagens de entrega" de `/bootstrap` §6 aos
+arquivos tocados na sincronização.
 
 Termine com um resumo: o que mudou em cada arquivo (meia linha por mudança) e o
 que continua em aberto. Se a rodada recebeu nome em `$ARGUMENTS`, use esse nome

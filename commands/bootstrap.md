@@ -1,7 +1,7 @@
 ---
 description: Gera a documentação-de-agente do projeto (SPEC.md, PLAN.md, CLAUDE.md e satélites). Entrevista o usuário em projeto novo; varre o repositório em projeto existente.
 argument-hint: [novo|existente] [contexto adicional em texto livre]
-allowed-tools: Read, Glob, Grep, Bash(git log:*), Bash(git tag:*), Bash(git branch:*), Bash(git remote:*), Bash(ls:*), Bash(find:*), Bash(tree:*), Bash(cat:*), Bash(head:*), Bash(wc:*)
+allowed-tools: Read, Glob, Grep, Bash(git log:*), Bash(git tag:*), Bash(git branch:*), Bash(git remote:*), Bash(ls:*), Bash(tree:*), Bash(cat:*), Bash(head:*), Bash(wc:*)
 disable-model-invocation: true
 ---
 
@@ -17,6 +17,9 @@ gramática abaixo mesmo quando ela contrariar seu hábito de formatação.
 ---
 
 ## 0. A gramática da casa
+
+Versão da gramática: v1. Incremente a cada mudança de convenção nesta seção;
+depois reinstale (ver Personalização no README).
 
 ### 0.1 Papéis dos arquivos
 
@@ -86,6 +89,22 @@ blockquote (`>`) logo abaixo do título. Nenhum arquivo assume o papel de outro.
     tabulares; árvore de pastas comentada para estrutura; snippet de código
     apenas quando prosa não ensina o padrão. Prefira frases afirmativas simples
     a aforismos e frases de efeito; use travessão com parcimônia.
+12. **Gatilho de geração.** Nenhum arquivo é escrito antes do aval explícito
+    do usuário sobre a Proposta (Modo A) ou o Relatório de varredura (Modo B).
+    Com o aval, gere nesta ordem: SPEC, PLAN, CLAUDE, satélites.
+
+### 0.3 Registro do interlocutor
+
+Estas regras valem para a conversa (entrevista, relatórios, propostas), não
+apenas para os arquivos gerados:
+
+- Lidere com o veredito; sem aberturas de preenchimento ("Ótima pergunta",
+  "Claro, posso ajudar").
+- Mantenha a posição quando a evidência a sustenta; revisar para agradar é
+  falha de qualidade. Revise apenas diante de evidência ou argumento novo.
+- Conduza a entrevista e os relatórios na língua em que o usuário escrever,
+  seguindo o input mais recente se ele trocar de língua. Os documentos
+  gerados seguem a regra 10.
 
 ---
 
@@ -112,6 +131,28 @@ por mensagem, com 2 a 4 perguntas numeradas, respondíveis em uma única respost
 Pule perguntas já respondidas em `$ARGUMENTS` ou na conversa; funda blocos
 quando o usuário responder além do perguntado.
 
+Abra anunciando a forma, em uma frase: "São 4 blocos curtos de perguntas; ao
+fim apresento a proposta de arquivos e só gero após seu OK."
+
+Regras da entrevista:
+
+- **Sondagem.** Resposta monossilábica ou vaga em bloco cuja profundidade
+  sustenta o resto (Bloco 2, recorte; Bloco 4, disciplina) recebe uma
+  sondagem por especificidade. Persistindo o vazio, o item vira decisão em
+  aberto no documento — nunca premissa inventada nem item genérico (§0.2.3 e
+  §0.2.9).
+- **Wildcard.** Se o domínio esconder uma incógnita de alto impacto fora
+  destes blocos (constraint regulatória, quirk de runtime, dependência
+  frágil), gaste uma das perguntas do bloco com ela — só com estaca concreta
+  (a resposta mudaria o SPEC, uma fase ou a regra de ouro), nunca por
+  completude.
+- **Atalho (opt-out).** Se o usuário disser "Go" ou "Prosseguir", encerre as
+  perguntas e vá à Proposta. Bloco não respondido não vira premissa: o que
+  for deduzível de `$ARGUMENTS` entra; o resto entra na Proposta como
+  "Decisões em aberto (a confirmar)" sinalizadas. A regra "intenção não se
+  infere" (§3.3) continua valendo, e o aval da Proposta permanece obrigatório
+  (§0.2.12).
+
 **Bloco 1: problema e usuários**
 
 1. Que dor este projeto resolve, e para quem?
@@ -137,6 +178,14 @@ quando o usuário responder além do perguntado.
 2. Proibições que você já conhece ("nunca X")?
 3. O que precisaria estar verificado para você aceitar a entrega como pronta? (semente dos critérios de aceitação)
 4. O projeto terá disciplina de teste por tarefa (TDD) ou verificação manual?
+
+**Ledger de cobertura.** Encerre cada mensagem da entrevista com "Prontidão:
+em descoberta | refinando | pronto para propor". Antes da Proposta, o ledger
+em uma linha: "Cobertura — 0 Regra-de-ouro candidata: <frase | ainda não> ·
+1 Problema/usuários: <resumo> · 2 Recorte da Fase 1: <frase> · 3
+Stack/segredos: <resumo> · 4 Disciplina/critérios: <resumo>". "Pronto" exige
+a linha 0 formulada em uma frase e nenhum item raso; faltando, volte ao bloco
+correspondente em vez de propor.
 
 **Proposta.** Antes de escrever qualquer arquivo, apresente em uma única
 mensagem:
@@ -170,7 +219,10 @@ Leia, nesta ordem, anotando evidências:
 4. **Documentação existente**: README*, CLAUDE*, AGENTS*, SPEC*, PLAN\*, docs/ e
    comentários de cabeçalho relevantes.
 5. **Git**: `git log --oneline -40`, tags e branches. Extraia vocabulário,
-   ritmo, convenção de commit e marcos já nomeados.
+   ritmo, convenção de commit e marcos já nomeados. Se o diretório não for
+   repositório git, pule esta fonte, registre "histórico git indisponível"
+   em "Não determinável" e siga com as demais; não improvise vocabulário nem
+   marcos.
 6. **Amostragem de código**: 3 a 5 arquivos representativos por área, para
    inferir convenções reais: exports, tratamento de erro, nomenclatura, onde
    ficam validação e tipos, como as camadas se comunicam.
@@ -183,6 +235,12 @@ Leia, nesta ordem, anotando evidências:
 3. **Não determinável pelo código**: intenção, fases, o que é dívida deliberada
    e o que é acidente, escopo futuro. Transforme cada item em uma pergunta
    objetiva ou proponha registrá-lo como decisão em aberto.
+
+Antes do fecho, o ledger de cobertura em uma linha: "Cobertura — 0
+Regra-de-ouro candidata (com evidência): <frase | ainda não> · 1
+Áreas/módulos mapeados · 2 Convenções fortes vs. em aberto · 3
+Segredos/bordas · 4 Gaps/decisões pendentes". Só passe à geração com a
+linha 0 preenchida.
 
 Termine com: "Com seu OK (e correções), eu gero os arquivos."
 
@@ -199,6 +257,18 @@ Termine com: "Com seu OK (e correções), eu gero os arquivos."
 - **Afirme com a confiança que a evidência permite.** No documento final,
   convenção inferida de padrão forte entra como regra; padrão fraco ou misto
   entra como decisão em aberto ("hoje coexistem X e Y; padronizar?").
+- **Fonte contra fonte.** Quando duas fontes que deveriam concordar divergem
+  (manifest declara workspace ou alias ausente na árvore; lockfile fora do
+  manifest; duas áreas com convenções opostas), o comportamento que o código
+  executa vence a declaração. Registre a divergência como fato (Observado) e
+  proponha decisão em aberto ("X declara Y, mas o código faz Z; alinhar?").
+  Nunca resolva o conflito silenciosamente.
+- **Pedido contra a evidência.** Se o usuário pedir uma afirmação que a
+  evidência do código contradiz (uma regra de ouro que o código desmente),
+  nomeie a contradição em uma frase e ofereça as saídas coerentes: documentar
+  o comportamento real; registrar a intenção como decisão em aberto ou gap
+  conhecido; ou confirmar que a mudança de código acontece fora desta tarefa.
+  Não escreva o documento contra a evidência.
 - **Critérios de aceitação de código existente** descrevem o comportamento real
   verificado, não o comportamento ideal.
 
@@ -357,8 +427,8 @@ Depende de: Fase 0 completa.
 
 ## Decisões em aberto
 
-- [ ] <decisão> — afeta T<x.y>.
-- [x] <decisão> — decidido: <o quê e como refletiu no plano>.
+- [ ] **<decisão>** — afeta T<x.y>.
+- [x] **<decisão>** — resolvido: <como refletiu no plano> (<rodada/data>).
       </template>
 
 <template arquivo="CLAUDE.md">
@@ -429,8 +499,8 @@ fronteira, e um snippet mínimo quando prosa não ensina. Derive as seções das
 
 ## Decisões em aberto
 
-- [ ] <decisão> — <contexto>.
-- [x] <decisão> — resolvido: <como> (<rodada/data>).
+- [ ] **<decisão>** — <contexto>.
+- [x] **<decisão>** — resolvido: <como> (<rodada/data>).
       <Quando vazio: "Nenhuma pendente.">
       </template>
 
@@ -452,8 +522,20 @@ cogitadas) e por que ainda não foi feito.>
 ## 6. Entrega
 
 1. Escreva os arquivos aprovados.
-2. Feche com um resumo compacto: cada arquivo criado, seu papel em meia linha e
+2. **Checagens de entrega.** Re-aplique os invariantes ao que foi escrito
+   (em `/rodada`, aos arquivos tocados na sincronização):
+   - O SPEC tem a fronteira presente/futuro com o blockquote de reforço (regra 1).
+   - Toda seção "Nunca fazer" presente tem 4 ou mais proibições específicas
+     com justificativa na linha; senão a seção não existe (regra 3).
+   - Cada critério de aceitação passa no teste do terceiro (regra 4).
+   - Rastreabilidade fechada: tarefas → módulos, riscos → constraints
+     numeradas, decisões → tarefas (regra 8).
+   - Zero placeholder ou seção "TBD" não anunciada (regra 9).
+   - Teste de deleção: linha cuja remoção não muda como um agente age no
+     código é cortada (regra 11).
+     Qualquer falha exige reparo ou uma linha de justificativa no resumo.
+3. Feche com um resumo compacto: cada arquivo criado, seu papel em meia linha e
    o que ficou registrado como decisão em aberto nele.
-3. Lembre o usuário de rodar `/rodada` ao fechar cada marco de implementação.
+4. Lembre o usuário de rodar `/rodada` ao fechar cada marco de implementação.
    Os documentos precisam continuar refletindo o código para que a gramática
    funcione.
