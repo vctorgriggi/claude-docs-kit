@@ -49,3 +49,5 @@ Depende de: Fase 0 completa.
 
 - [x] **Formato do relatório** — resolvido: texto simples; JSON vira item de
       roadmap (rodada fase-1).
+
+<!-- rodada: fase-1 @ b7e4d21 -->

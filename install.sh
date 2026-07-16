@@ -1,22 +1,29 @@
 #!/usr/bin/env bash
-# Instala os comandos do claude-docs-kit em ~/.claude/commands. Rode de dentro do repo: ./install.sh
+# Instala os comandos do claude-docs-kit em ~/.claude/commands e o docscheck
+# em ~/.claude/bin. Rode de dentro do repo: ./install.sh
 set -euo pipefail
 
-DEST="${HOME}/.claude/commands"
-SRC="$(cd "$(dirname "$0")" && pwd)/commands"
+RAIZ="$(cd "$(dirname "$0")" && pwd)"
 
-mkdir -p "$DEST"
-for f in "$SRC"/*.md; do
-  dest="$DEST/$(basename "$f")"
-  if [ -f "$dest" ] && cmp -s "$f" "$dest"; then
-    echo "sem mudança: /$(basename "${f%.md}")"
-  elif [ -f "$dest" ]; then
-    cp "$f" "$dest"
-    echo "atualizado: /$(basename "${f%.md}")"
+instalar() { # instalar <origem> <destino> <rótulo>
+  local origem="$1" destino="$2" rotulo="$3"
+  mkdir -p "$(dirname "$destino")"
+  if [ -f "$destino" ] && cmp -s "$origem" "$destino"; then
+    echo "sem mudança: $rotulo"
+  elif [ -f "$destino" ]; then
+    cp "$origem" "$destino"
+    echo "atualizado: $rotulo"
   else
-    cp "$f" "$dest"
-    echo "instalado: /$(basename "${f%.md}")"
+    cp "$origem" "$destino"
+    echo "instalado: $rotulo"
   fi
+}
+
+for f in "$RAIZ"/commands/*.md; do
+  instalar "$f" "${HOME}/.claude/commands/$(basename "$f")" "/$(basename "${f%.md}")"
 done
+
+instalar "$RAIZ/bin/docscheck.mjs" "${HOME}/.claude/bin/docscheck.mjs" \
+  "docscheck (~/.claude/bin/docscheck.mjs)"
 
 echo "Pronto. Os comandos aparecem no autocomplete do Claude Code ao digitar /."

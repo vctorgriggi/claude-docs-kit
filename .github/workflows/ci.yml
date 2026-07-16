@@ -1,0 +1,21 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: testes do docscheck
+        run: node --test test/docscheck.test.mjs
+      - name: testes do fixture linkcheck (referência viva da gramática)
+        run: node --test
+        working-directory: examples/fixtures/linkcheck
+      - name: docscheck contra o doc-set de referência
+        run: node bin/docscheck.mjs examples/fixtures/linkcheck

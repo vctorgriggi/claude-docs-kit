@@ -1,25 +1,25 @@
-import { readdir, readFile } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
-import path from 'node:path';
+import { readdir, readFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
+import path from "node:path";
 
-const IGNORADOS = new Set(['node_modules', '.git']);
+const IGNORADOS = new Set(["node_modules", ".git"]);
 
 // minúsculas, NFD sem diacríticos, não-alfanumérico vira hífen (convenção
 // registrada no CLAUDE.md: âncoras acentuadas falhavam sem normalização)
 export function slug(texto) {
   return texto
     .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 export function extrairLinks(markdown) {
   const links = [];
   let emBloco = false;
-  markdown.split('\n').forEach((linha, i) => {
-    if (linha.trimStart().startsWith('```')) {
+  markdown.split("\n").forEach((linha, i) => {
+    if (linha.trimStart().startsWith("```")) {
       emBloco = !emBloco;
       return;
     }
@@ -33,7 +33,7 @@ export function extrairLinks(markdown) {
 
 export function extrairAncoras(markdown) {
   return new Set(
-    [...markdown.matchAll(/^#{1,6}\s+(.+)$/gm)].map((m) => slug(m[1]))
+    [...markdown.matchAll(/^#{1,6}\s+(.+)$/gm)].map((m) => slug(m[1])),
   );
 }
 
@@ -43,7 +43,7 @@ async function listarMd(dir) {
     if (IGNORADOS.has(e.name)) continue;
     const p = path.join(dir, e.name);
     if (e.isDirectory()) resultado.push(...(await listarMd(p)));
-    else if (e.name.endsWith('.md')) resultado.push(p);
+    else if (e.name.endsWith(".md")) resultado.push(p);
   }
   return resultado;
 }
@@ -51,10 +51,10 @@ async function listarMd(dir) {
 export async function verificar(dir) {
   const quebrados = [];
   for (const arquivo of await listarMd(dir)) {
-    const conteudo = await readFile(arquivo, 'utf8');
+    const conteudo = await readFile(arquivo, "utf8");
     for (const { alvo, linha } of extrairLinks(conteudo)) {
       if (/^[a-z]+:/.test(alvo)) continue; // externos: roadmap (SPEC, Planejado)
-      const [caminho, ancora] = alvo.split('#');
+      const [caminho, ancora] = alvo.split("#");
       const alvoAbs = caminho
         ? path.resolve(path.dirname(arquivo), caminho)
         : arquivo;
@@ -64,9 +64,11 @@ export async function verificar(dir) {
       }
       if (ancora !== undefined) {
         const alvoConteudo = caminho
-          ? await readFile(alvoAbs, 'utf8')
+          ? await readFile(alvoAbs, "utf8")
           : conteudo;
-        if (!extrairAncoras(alvoConteudo).has(slug(decodeURIComponent(ancora)))) {
+        if (
+          !extrairAncoras(alvoConteudo).has(slug(decodeURIComponent(ancora)))
+        ) {
           quebrados.push({ arquivo, linha, alvo });
         }
       }

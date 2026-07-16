@@ -1,7 +1,9 @@
 ---
 description: Fecha um marco de implementação. Sincroniza SPEC.md, PLAN.md e CLAUDE.md com o estado real do código e registra as decisões tomadas no caminho.
 argument-hint: [nome da rodada ou resumo do que foi feito]
-allowed-tools: Read, Glob, Grep, Bash(git log:*), Bash(git diff:*), Bash(git tag:*), Bash(git status:*)
+# Write/Edit ausentes de propósito: cada escrita passa pelo prompt de permissão
+# do harness — um segundo gate além do aval conversacional exigido no passo 2.
+allowed-tools: Read, Glob, Grep, Bash(git log:*), Bash(git diff:*), Bash(git tag:*), Bash(git status:*), Bash(git rev-parse:*), Bash(node ~/.claude/bin/docscheck.mjs:*)
 disable-model-invocation: true
 ---
 
@@ -16,11 +18,14 @@ do histórico do git ou desta conversa.
 ## 1. Leia o estado
 
 1. Leia CLAUDE.md, SPEC.md e PLAN.md (e ROADMAP e docs/, se existirem).
-2. Levante o que mudou desde a última sincronização: `git log --oneline` desde
-   a última tag ou marco (ou desde a última rodada mencionada nos documentos);
-   consulte diffs quando um commit não se explicar sozinho. Sem repositório
-   git, apoie-se apenas no diff de arquivos e nesta conversa, e diga isso ao
-   usuário.
+2. Levante o que mudou desde a última sincronização. Se o fim do PLAN.md (ou
+   do CLAUDE.md, quando não há PLAN) tiver o marcador
+   `<!-- rodada: <nome> @ <ref> -->`, a janela é determinística:
+   `git log <ref>..HEAD --oneline`. Sem marcador, use `git log --oneline`
+   desde a última tag ou marco (ou desde a última rodada mencionada nos
+   documentos). Consulte diffs quando um commit não se explicar sozinho. Sem
+   repositório git, apoie-se apenas no diff de arquivos e nesta conversa, e
+   diga isso ao usuário.
 3. Monte a lista do que aconteceu e pergunte ao usuário o que dela foi decisão
    deliberada (em oposição a acaso do caminho) e se houve decisões que não
    aparecem no código: cortes, adiamentos, resultados de pesquisa.
@@ -54,9 +59,22 @@ do histórico do git ou desta conversa.
 
 ## 4. Feche
 
-Antes do resumo, aplique as "Checagens de entrega" de `/bootstrap` §6 aos
-arquivos tocados na sincronização.
-
-Termine com um resumo: o que mudou em cada arquivo (meia linha por mudança) e o
-que continua em aberto. Se a rodada recebeu nome em `$ARGUMENTS`, use esse nome
-nas anotações de resolução; ele é o marcador histórico do marco.
+1. **Checagens de entrega nos arquivos tocados.** Se
+   `~/.claude/bin/docscheck.mjs` existir, rode
+   `node ~/.claude/bin/docscheck.mjs .` e repare cada violação (ou justifique
+   em uma linha no resumo). Sem o script, confira manualmente os invariantes
+   mecânicos: fronteira presente/futuro intacta no SPEC (com o blockquote de
+   reforço); formato das decisões (`- [x] **<decisão>** — resolvido: <como>
+(<rodada>)`); rastreabilidade fechada (tarefas → módulos, riscos →
+   constraints numeradas, decisões → tarefas); zero placeholder ou "TBD". Em
+   qualquer caso, aplique as checagens de julgamento: diff mínimo (seções que
+   não mudaram não foram reescritas) e teste de deleção nos trechos novos
+   (linha que não muda como um agente age no código é cortada).
+2. **Marcador de rodada.** Atualize (ou crie) na última linha do PLAN.md — do
+   CLAUDE.md, quando não há PLAN — o marcador
+   `<!-- rodada: <nome> @ <ref> -->`, onde `<ref>` é a saída de
+   `git rev-parse --short HEAD`; sem repositório git, a data (AAAA-MM-DD). A
+   próxima rodada parte dele (§1).
+3. Termine com um resumo: o que mudou em cada arquivo (meia linha por mudança)
+   e o que continua em aberto. Se a rodada recebeu nome em `$ARGUMENTS`, use
+   esse nome nas anotações de resolução; ele é o marcador histórico do marco.

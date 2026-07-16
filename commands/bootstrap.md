@@ -1,7 +1,9 @@
 ---
 description: Gera a documentação-de-agente do projeto (SPEC.md, PLAN.md, CLAUDE.md e satélites). Entrevista o usuário em projeto novo; varre o repositório em projeto existente.
 argument-hint: [novo|existente] [contexto adicional em texto livre]
-allowed-tools: Read, Glob, Grep, Bash(git log:*), Bash(git tag:*), Bash(git branch:*), Bash(git remote:*), Bash(ls:*), Bash(tree:*), Bash(cat:*), Bash(head:*), Bash(wc:*)
+# Write/Edit ausentes de propósito: cada escrita passa pelo prompt de permissão
+# do harness — um segundo gate além do aval conversacional (§0.2.12).
+allowed-tools: Read, Glob, Grep, Bash(git log:*), Bash(git tag:*), Bash(git branch:*), Bash(git remote:*), Bash(ls:*), Bash(tree:*), Bash(cat:*), Bash(head:*), Bash(wc:*), Bash(node ~/.claude/bin/docscheck.mjs:*)
 disable-model-invocation: true
 ---
 
@@ -522,17 +524,19 @@ cogitadas) e por que ainda não foi feito.>
 ## 6. Entrega
 
 1. Escreva os arquivos aprovados.
-2. **Checagens de entrega.** Re-aplique os invariantes ao que foi escrito
-   (em `/rodada`, aos arquivos tocados na sincronização):
-   - O SPEC tem a fronteira presente/futuro com o blockquote de reforço (regra 1).
-   - Toda seção "Nunca fazer" presente tem 4 ou mais proibições específicas
-     com justificativa na linha; senão a seção não existe (regra 3).
-   - Cada critério de aceitação passa no teste do terceiro (regra 4).
-   - Rastreabilidade fechada: tarefas → módulos, riscos → constraints
-     numeradas, decisões → tarefas (regra 8).
-   - Zero placeholder ou seção "TBD" não anunciada (regra 9).
-   - Teste de deleção: linha cuja remoção não muda como um agente age no
-     código é cortada (regra 11).
+2. **Checagens de entrega.** Re-aplique os invariantes ao que foi escrito, em
+   duas camadas:
+   - **Mecânicas.** Se `~/.claude/bin/docscheck.mjs` existir, rode
+     `node ~/.claude/bin/docscheck.mjs .`; ele verifica a fronteira
+     presente/futuro com o blockquote de reforço (regra 1), a regra de ouro
+     formulada em negrito (regra 2), "Nunca fazer" com 4 ou mais proibições
+     justificadas na linha (regra 3), o estado e o formato das decisões
+     (regras 5 e 6), a rastreabilidade tarefas → módulos, riscos → constraints
+     numeradas, decisões → tarefas (regra 8) e placeholders/"TBD" (regra 9).
+     Sem o script, confira esses mesmos itens manualmente.
+   - **De julgamento** (sempre auto-aplicadas): cada critério de aceitação
+     passa no teste do terceiro (regra 4); teste de deleção — linha cuja
+     remoção não muda como um agente age no código é cortada (regra 11).
      Qualquer falha exige reparo ou uma linha de justificativa no resumo.
 3. Feche com um resumo compacto: cada arquivo criado, seu papel em meia linha e
    o que ficou registrado como decisão em aberto nele.

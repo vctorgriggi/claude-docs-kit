@@ -20,11 +20,12 @@ trabalho.
 ```bash
 git clone <este-repo>
 cd claude-docs-kit
-./install.sh            # copia commands/*.md para ~/.claude/commands/
+./install.sh            # commands/*.md → ~/.claude/commands/; docscheck → ~/.claude/bin/
 ```
 
 Ou manualmente: `cp commands/*.md ~/.claude/commands/` (escopo pessoal,
-disponível em todos os projetos). Para restringir a um único projeto, copie
+disponível em todos os projetos) e `cp bin/docscheck.mjs ~/.claude/bin/`
+(as checagens mecânicas de entrega; ver Verificação). Para restringir a um único projeto, copie
 para `.claude/commands/` dentro dele. O Claude Code também aceita o formato
 mais recente de skills (`~/.claude/skills/<nome>/SKILL.md`); o formato clássico
 de commands segue suportado e é o usado aqui.
@@ -102,16 +103,45 @@ referência viva da gramática.
 - pt-BR nos documentos de agente (vocabulário técnico em inglês); língua do
   público nos documentos públicos.
 
+## Verificação
+
+- **`bin/docscheck.mjs`** — verificador executável dos invariantes mecânicos
+  da gramática: fronteira presente/futuro com o blockquote de reforço, regra
+  de ouro em negrito, "Nunca fazer" com 4+ proibições justificadas na linha,
+  formato e estado das decisões, rastreabilidade cruzada (tarefas → módulos,
+  riscos → constraints, decisões → tarefas), zero "TBD" e papel declarado no
+  cabeçalho. Node ≥ 20, zero dependências, instalação por cópia. Uso:
+  `node ~/.claude/bin/docscheck.mjs <dir>`; exit 0 sem violações, 1 com
+  violações, 2 erro de uso. Os comandos o executam nas checagens de entrega
+  quando instalado, e o CI de um projeto-alvo pode copiá-lo e rodá-lo também.
+  As checagens de julgamento (teste do terceiro, teste de deleção) seguem com
+  o agente.
+- **Marcador de rodada** — `/rodada` carimba `<!-- rodada: <nome> @ <sha> -->`
+  no fim do PLAN.md; a rodada seguinte levanta as mudanças com
+  `git log <sha>..HEAD`, sem adivinhar qual foi o último marco.
+- **Gate duplo na escrita** — os comandos não levam `Write`/`Edit` em
+  `allowed-tools` de propósito: além do aval conversacional (Proposta,
+  Relatório, OK da rodada), cada escrita passa pelo prompt de permissão do
+  harness.
+- **CI do kit** — roda os testes do docscheck, os testes do fixture linkcheck
+  e o docscheck contra o doc-set de referência
+  ([`examples/fixtures/linkcheck/`](examples/fixtures/linkcheck/)).
+- **`scripts/regressao-smoke.sh`** — ferramenta do mantenedor: roda casos
+  baratos da [regressão da gramática](examples/regressao-da-gramatica.md) em
+  headless (`claude -p`) contra os fixtures e confere os sinais travados por
+  grep. Custa tokens e é heurístico; não roda no CI.
+
 ## Limitações conhecidas
 
 - A gramática é opinativa e fixa pt-BR para documentos de agente (regra 10) —
   escolha de design, não defeito; limita o reuso do kit a projetos lusófonos.
-- O fluxo depende de aprovação humana em cada gate; nada é gerado nem
-  verificado de forma autônoma.
+- O fluxo depende de aprovação humana em cada gate; nada é gerado de forma
+  autônoma.
 - A cópia instalada em `~/.claude/commands/` não se atualiza sozinha após
   editar a fonte (ver Personalização).
-- As checagens de entrega são auto-aplicadas pelo agente; não há verificação
-  automatizada externa de que a documentação gerada obedece à gramática.
+- O `docscheck` cobre apenas os invariantes mecânicos da gramática; as
+  checagens de julgamento (teste do terceiro, teste de deleção) seguem
+  auto-aplicadas pelo agente, sem verificação externa.
 - Os comandos usam o formato clássico (`~/.claude/commands/`), não o formato
   mais recente de skills; se o formato clássico for depreciado, o kit precisa
   ser portado.
@@ -124,5 +154,9 @@ incremente a versão da gramática declarada no topo da seção, confira
 [`examples/regressao-da-gramatica.md`](examples/regressao-da-gramatica.md)
 (resultado divergente que não era a intenção da edição é deriva) e rode
 `./install.sh` novamente (a cópia em `~/.claude/commands/` não se atualiza
-sozinha). Renomear um comando é renomear o arquivo: `rodada.md` vira `/rodada`,
+sozinha). Se a mudança afetar um invariante mecânico, atualize o `docscheck`
+junto e rode `node --test test/docscheck.test.mjs` e
+`node bin/docscheck.mjs examples/fixtures/linkcheck` (o CI cobre os dois);
+para mudanças de comportamento dos comandos, `./scripts/regressao-smoke.sh`
+roda os casos baratos da regressão em headless (custa tokens). Renomear um comando é renomear o arquivo: `rodada.md` vira `/rodada`,
 `sync.md` viraria `/sync`.

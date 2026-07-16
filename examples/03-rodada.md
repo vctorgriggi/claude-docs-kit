@@ -92,6 +92,10 @@ permanece (HTTP e JSON continuam em "Planejado"); rastreabilidade fechada
 (T1.2 → módulo check; risco → G1); diff mínimo — seções que não mudaram não
 foram reescritas.
 
+Marcador carimbado no fim do PLAN.md: `<!-- rodada: fase-1 @ b7e4d21 -->` — a
+próxima rodada levanta as mudanças com `git log b7e4d21..HEAD`, sem adivinhar
+o último marco.
+
 Resumo: PLAN com 4 tarefas fechadas, 1 desvio anotado e 1 risco novo; SPEC
 com âncoras movidas para o corpo e critério novo; CLAUDE com a convenção de
 slug, G1 e a decisão resolvida. Em aberto: nada pendente.

@@ -2,7 +2,13 @@
   "name": "notas-api",
   "version": "0.3.0",
   "type": "module",
-  "workspaces": ["packages/*"],
-  "scripts": { "start": "node src/server.js" },
-  "dependencies": { "express": "^4.19.0" }
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.0"
+  }
 }

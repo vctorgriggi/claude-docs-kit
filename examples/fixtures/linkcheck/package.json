@@ -2,7 +2,13 @@
   "name": "linkcheck",
   "version": "0.2.0",
   "type": "module",
-  "bin": { "linkcheck": "./src/cli.js" },
-  "scripts": { "test": "node --test" },
-  "engines": { "node": ">=20" }
+  "bin": {
+    "linkcheck": "./src/cli.js"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
 }

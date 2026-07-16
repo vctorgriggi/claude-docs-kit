@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-import { existsSync } from 'node:fs';
-import { verificar } from './check.js';
+import { existsSync } from "node:fs";
+import { verificar } from "./check.js";
 
 const dir = process.argv[2];
 if (!dir) {
-  console.error('uso: linkcheck <diretório>');
+  console.error("uso: linkcheck <diretório>");
   process.exit(2);
 }
 if (!existsSync(dir)) {
