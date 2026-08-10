@@ -1,10 +1,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { verificar } from "../bin/docscheck.mjs";
+import { GRAMATICA, verificar } from "../bin/docscheck.mjs";
 
 const FIXTURE = fileURLToPath(
   new URL("../examples/fixtures/linkcheck", import.meta.url),
@@ -23,7 +23,32 @@ const regras = (r) => r.violacoes.map((v) => v.regra);
 test("o doc-set de referência (fixtures/linkcheck) passa sem violações", async () => {
   const r = await verificar(FIXTURE);
   assert.deepEqual(r.violacoes, []);
+  assert.deepEqual(r.avisos, []);
   assert.deepEqual(r.arquivos.sort(), ["CLAUDE.md", "PLAN.md", "SPEC.md"]);
+});
+
+test("CLAUDE.md acima do limite brando gera aviso, nunca violação", async () => {
+  const recheio = Array.from(
+    { length: 220 },
+    (_, i) => `Linha de contexto ${i} da seção, sem nada de gramática.`,
+  );
+  const dir = await docSet({
+    "CLAUDE.md": [
+      "# projeto",
+      "",
+      "> Contrato de como escrevemos código aqui.",
+      "",
+      "## Regra de ouro",
+      "",
+      "**Uma disciplina.** Tudo deriva disso.",
+      "",
+      ...recheio,
+    ].join("\n"),
+  });
+  const r = await verificar(dir);
+  assert.deepEqual(r.violacoes, []);
+  assert.equal(r.avisos.length, 1);
+  assert.match(r.avisos[0].msg, /compactar ou extrair/);
 });
 
 test("diretório sem documentos da gramática é erro de uso", async () => {
@@ -150,6 +175,147 @@ test("PLAN com tarefa sem módulo, módulo fantasma, constraint e tarefa inexist
   assert.match(msgs, /módulo "inexistente"/);
   assert.match(msgs, /constraint 2, inexistente/);
   assert.match(msgs, /T9\.9, inexistente no PLAN/);
+});
+
+test("a constante GRAMATICA acompanha a versão declarada no bootstrap.md §0", async () => {
+  const bootstrap = await readFile(
+    new URL("../commands/bootstrap.md", import.meta.url),
+    "utf8",
+  );
+  const m = bootstrap.match(/Versão da gramática: (v\d+)/);
+  assert.ok(m, "bootstrap.md não declara a versão da gramática");
+  assert.equal(GRAMATICA, m[1]);
+});
+
+test("conteúdo de bloco de código não é gramática: heading, TBD e marcador em fence são ignorados", async () => {
+  const dir = await docSet({
+    "CLAUDE.md": [
+      "# projeto",
+      "",
+      "> Contrato de como escrevemos código aqui.",
+      "",
+      "## Regra de ouro",
+      "",
+      "**Uma disciplina.** Tudo deriva disso.",
+      "",
+      "## Convenções",
+      "",
+      "- Exemplo de doc que o kit gera:",
+      "",
+      "```md",
+      "## Nunca fazer",
+      "",
+      "- Nunca usar var — legado.",
+      "algo TBD",
+      "<!-- rodada: exemplo sem ref -->",
+      "```",
+      "",
+    ].join("\n"),
+  });
+  const r = await verificar(dir);
+  assert.deepEqual(r.violacoes, []);
+});
+
+test("módulo citado apenas em prosa do CLAUDE.md não fecha a rastreabilidade", async () => {
+  const dir = await docSet({
+    "CLAUDE.md": [
+      "# projeto",
+      "",
+      "> Contrato de como escrevemos código aqui.",
+      "",
+      "## Regra de ouro",
+      "",
+      "**Uma disciplina.** Este projeto expõe uma CLI simples.",
+      "",
+    ].join("\n"),
+    "PLAN.md": [
+      "# PLAN.md",
+      "",
+      "> Plano de execução.",
+      "",
+      "## Fase 0 — Fundação",
+      "",
+      "- [ ] T0.1 — borda de linha de comando · módulo: cli",
+      "",
+    ].join("\n"),
+  });
+  const r = await verificar(dir);
+  assert.deepEqual(regras(r), ["R8"]);
+  assert.match(r.violacoes[0].msg, /módulo "cli"/);
+});
+
+test("módulo definido na Estrutura (dentro do bloco de código) fecha a rastreabilidade", async () => {
+  const dir = await docSet({
+    "CLAUDE.md": [
+      "# projeto",
+      "",
+      "> Contrato de como escrevemos código aqui.",
+      "",
+      "## Regra de ouro",
+      "",
+      "**Uma disciplina.** Tudo deriva disso.",
+      "",
+      "## Estrutura",
+      "",
+      "```",
+      "src/",
+      "  cli.js   # borda: argv, relatório e exit code",
+      "```",
+      "",
+    ].join("\n"),
+    "PLAN.md": [
+      "# PLAN.md",
+      "",
+      "> Plano de execução.",
+      "",
+      "## Fase 0 — Fundação",
+      "",
+      "- [ ] T0.1 — borda de linha de comando · módulo: cli",
+      "",
+    ].join("\n"),
+  });
+  const r = await verificar(dir);
+  assert.deepEqual(r.violacoes, []);
+});
+
+test("decisão resolvida pode apontar tarefa já compactada; pendente não pode", async () => {
+  const dir = await docSet({
+    "CLAUDE.md": [
+      "# projeto",
+      "",
+      "> Contrato de como escrevemos código aqui.",
+      "",
+      "## Regra de ouro",
+      "",
+      "**Uma disciplina.** Tudo deriva disso.",
+      "",
+      "## Estrutura",
+      "",
+      "```",
+      "src/",
+      "  core.js  # núcleo",
+      "```",
+      "",
+    ].join("\n"),
+    "PLAN.md": [
+      "# PLAN.md",
+      "",
+      "> Plano de execução.",
+      "",
+      "## Fase 1 — Atual",
+      "",
+      "- [ ] T1.1 — tarefa viva · módulo: core",
+      "",
+      "## Decisões em aberto",
+      "",
+      "- [x] **Antiga** — resolvido: feito (rodada x); afetava T0.9.",
+      "- [ ] **Pendente** — afeta T0.8.",
+      "",
+    ].join("\n"),
+  });
+  const r = await verificar(dir);
+  assert.deepEqual(regras(r), ["R8"]);
+  assert.match(r.violacoes[0].msg, /pendente aponta T0\.8/);
 });
 
 test("marcador de rodada: formato válido passa, inválido acusa", async () => {

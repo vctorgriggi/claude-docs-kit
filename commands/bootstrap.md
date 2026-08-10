@@ -3,7 +3,10 @@ description: Gera a documentação-de-agente do projeto (SPEC.md, PLAN.md, CLAUD
 argument-hint: [novo|existente] [contexto adicional em texto livre]
 # Write/Edit ausentes de propósito: cada escrita passa pelo prompt de permissão
 # do harness — um segundo gate além do aval conversacional (§0.2.12).
-allowed-tools: Read, Glob, Grep, Bash(git log:*), Bash(git tag:*), Bash(git branch:*), Bash(git remote:*), Bash(ls:*), Bash(tree:*), Bash(cat:*), Bash(head:*), Bash(wc:*), Bash(node ~/.claude/bin/docscheck.mjs:*)
+# WebFetch/WebSearch servem à pesquisa de stack (§2) e a nomear a recomendação
+# vigente numa decisão em aberto (§3.3): docs oficiais da versão declarada,
+# nunca fonte de intenção.
+allowed-tools: Read, Glob, Grep, WebFetch, WebSearch, Bash(git log:*), Bash(git tag:*), Bash(git branch:*), Bash(git remote:*), Bash(ls:*), Bash(tree:*), Bash(cat:*), Bash(head:*), Bash(wc:*), Bash(node ~/.claude/bin/docscheck.mjs:*)
 disable-model-invocation: true
 ---
 
@@ -20,7 +23,7 @@ gramática abaixo mesmo quando ela contrariar seu hábito de formatação.
 
 ## 0. A gramática da casa
 
-Versão da gramática: v1. Incremente a cada mudança de convenção nesta seção;
+Versão da gramática: v4. Incremente a cada mudança de convenção nesta seção;
 depois reinstale (ver Personalização no README).
 
 ### 0.1 Papéis dos arquivos
@@ -45,7 +48,10 @@ blockquote (`>`) logo abaixo do título. Nenhum arquivo assume o papel de outro.
    e que nada fora dela deve ser lido como já existente (em projeto novo: como
    escopo da primeira entrega). A seção final abre com um blockquote que reforça
    o aviso. Essa fronteira impede que um agente implemente fase futura ou assuma
-   a existência de uma feature apenas planejada.
+   a existência de uma feature apenas planejada. A seção existe mesmo quando não
+   há nada planejado, reduzida ao blockquote ("> Nada planejado no momento."):
+   fronteira ausente é ambígua; fronteira vazia não. (Exceção deliberada à
+   economia da regra 9.)
 2. **Regra de ouro.** Todo CLAUDE.md tem uma disciplina arquitetural central,
    formulada em uma frase, em negrito. Escolha a fronteira cuja violação é a
    mais cara de desfazer: borda de dados, tratamento de segredo, isolamento de
@@ -66,20 +72,32 @@ blockquote (`>`) logo abaixo do título. Nenhum arquivo assume o papel de outro.
    texto "Nenhuma pendente" tem significado; uma seção ausente não tem.
 6. **Decisões em aberto com histórico.** Formato: `- [ ] **<decisão>** —
 <contexto/opções> (afeta T<x.y>, quando houver)`. Ao resolver:
-   `- [x] **<decisão>** — resolvido: <como> (<rodada/data>)`. Decisões
-   resolvidas nunca são apagadas; o histórico faz parte do documento. (Os
-   travessões acima são sintaxe literal do formato.)
+   `- [x] **<decisão>** — resolvido: <como> (<rodada/data>)`. Histórico não se
+   apaga silenciosamente: a resolução fica registrada; de rodadas seguintes em
+   diante ela pode ser compactada em uma linha — e cortada quando nem a linha
+   muda como um agente age (teste de deleção; o git guarda a íntegra). A
+   compactação acontece na /rodada, dentro do diff aprovado. (Os travessões
+   acima são sintaxe literal do formato.)
 7. **A justificativa acompanha a decisão.** Registre o porquê na mesma linha,
    em poucas palavras, geralmente entre parênteses. Caminhos rejeitados também
    são registrados. Uma decisão sem justificativa será rediscutida do zero em
-   alguma sessão futura.
+   alguma sessão futura. Convenção adotada de fonte externa registra fonte e
+   versão na própria linha — `(fonte: docs oficiais <stack> <versão>,
+   <mês/ano>)`; sem a marca, recomendação externa passa por decisão do projeto
+   e nunca é re-verificada quando a versão muda.
 8. **Rastreabilidade cruzada.** As tarefas do PLAN referenciam os módulos
    definidos no CLAUDE.md; a seção de Riscos do PLAN referencia as constraints
    do SPEC pelo número; as decisões em aberto apontam as tarefas que dependem
    delas. Os três arquivos formam um sistema.
 9. **Escala honesta.** Gere apenas o que o projeto precisa (ver §4). Não crie
    arquivo placeholder, seção "TBD" nem ROADMAP sem razão de existir. Um script
-   de 300 linhas recebe um CLAUDE.md de uma página e talvez nenhum PLAN.
+   de 300 linhas recebe um CLAUDE.md de uma página e talvez nenhum PLAN. A
+   escala vale no tempo e no volume: o PLAN detalha tarefas só da fase
+   corrente e da próxima — fases além ficam com objetivo e dependências,
+   detalhadas na rodada que fechar a anterior (detalhe distante é especulação
+   que apodrece); seção de área do CLAUDE.md que passar de ~meia página
+   extrai para docs/<tema>.md com um ponteiro de uma linha (o CLAUDE.md é
+   lido em toda sessão; volume ali cobra atenção sempre).
 10. **Idioma.** Documentos de agente (CLAUDE, SPEC, PLAN) em pt-BR, mantendo o
     vocabulário técnico em inglês (hook, endpoint, stream). Documentos voltados
     ao público do repositório (README, ROADMAP, CONTRIBUTING) na língua desse
@@ -189,6 +207,21 @@ Stack/segredos: <resumo> · 4 Disciplina/critérios: <resumo>". "Pronto" exige
 a linha 0 formulada em uma frase e nenhum item raso; faltando, volte ao bloco
 correspondente em vez de propor.
 
+**Pesquisa de stack (antes da Proposta).** Com a stack e as versões declaradas
+no Bloco 3, consulte a documentação oficial dessa versão (WebFetch/WebSearch —
+docs oficiais, não blogs) atrás de duas coisas: (a) **pontos de escolha**,
+onde o ecossistema aceita mais de um caminho válido (estrutura de pastas,
+gerência de estado, roteamento, estilo de teste) — sem escolha registrada,
+cada sessão futura decide diferente e o codebase diverge; (b) **recomendações
+atuais** que possam ter mudado desde o seu treinamento. Cada ponto de escolha
+vira convenção fixada na Proposta ou decisão em aberto — nunca fica ao gosto
+da sessão. O teste de deleção governa o filtro: princípio que qualquer sessão
+já aplicaria sozinha ("nomes idiomáticos", "escreva testes") não entra; entra
+a escolha entre alternativas e o desvio deliberado do padrão. Projeto de
+stdlib pura ou sem pontos de escolha reais: pule a pesquisa e diga isso na
+Proposta (§0.2.9). Sem WebFetch/WebSearch disponíveis, os pontos de escolha
+viram decisões em aberto.
+
 **Proposta.** Antes de escrever qualquer arquivo, apresente em uma única
 mensagem:
 
@@ -196,7 +229,9 @@ mensagem:
   a paleta do §4 para incluir e excluir com critério);
 - o esqueleto de fases do PLAN (nome e objetivo de cada fase, sem as tarefas) e
   a justificativa da ordem;
-- a regra de ouro proposta, formulada.
+- a regra de ouro proposta, formulada;
+- as escolhas de ecossistema: fixadas com fonte e versão (pesquisa de stack)
+  ou listadas como decisões em aberto.
 
 Peça aprovação ou ajustes. Com o OK, gere nesta ordem: SPEC, depois PLAN,
 depois CLAUDE, depois satélites. A ordem importa: o PLAN deriva do SPEC e o
@@ -258,7 +293,10 @@ Termine com: "Com seu OK (e correções), eu gero os arquivos."
   paliativo. Não corrija código nesta tarefa.
 - **Afirme com a confiança que a evidência permite.** No documento final,
   convenção inferida de padrão forte entra como regra; padrão fraco ou misto
-  entra como decisão em aberto ("hoje coexistem X e Y; padronizar?").
+  entra como decisão em aberto ("hoje coexistem X e Y; padronizar?"). Ao
+  formular a pergunta, a doc oficial atual da stack pode ser consultada para
+  nomear a recomendação vigente — informa a decisão; nunca vira migração
+  proposta por conta própria.
 - **Fonte contra fonte.** Quando duas fontes que deveriam concordar divergem
   (manifest declara workspace ou alias ausente na árvore; lockfile fora do
   manifest; duas áreas com convenções opostas), o comportamento que o código
@@ -290,8 +328,8 @@ escolha:
 Com o relatório validado, gere na mesma ordem do Modo A (SPEC, PLAN, CLAUDE,
 satélites). No PLAN de projeto existente, as fases já concluídas entram
 marcadas `[x]` de forma resumida (uma "Fase 0" com o inventário do que já foi
-construído é aceitável); o detalhamento por tarefa vale para o trabalho à
-frente.
+construído é aceitável); o detalhamento por tarefa vale para a fase corrente
+e a próxima (regra 9).
 
 ---
 
@@ -303,7 +341,7 @@ frente.
 | `CLAUDE.md`                                       | Sempre                                                                                                         | —                                                  |
 | `PLAN.md`                                         | Há trabalho à frente que se beneficia de ordem                                                                 | Projeto em manutenção sem backlog estruturado      |
 | `ROADMAP.md`                                      | Repositório público/OSS ou ambições reais além do SPEC                                                         | A única motivação for completar o conjunto         |
-| `docs/<tema>.md`                                  | Um tema acumulou conhecimento caro (spike, API frágil, pesquisa) que não cabe inline                           | O conteúdo ainda cabe em um parêntese do CLAUDE.md |
+| `docs/<tema>.md`                                  | Um tema acumulou conhecimento caro (spike, API frágil, pesquisa) que não cabe inline, ou uma seção de área do CLAUDE.md passou de ~meia página (extração, regra 9) | O conteúdo ainda cabe em um parêntese do CLAUDE.md |
 | `docs/README.md`                                  | `docs/` passou de cerca de 3 arquivos                                                                          | docs/ vazio                                        |
 | `<pacote>/CLAUDE.md`                              | Monorepo em que um pacote tem recipe própria (como adicionar um recurso ali)                                   | O CLAUDE.md raiz já cobre                          |
 | `AGENTS.md`                                       | Outros agentes além do Claude Code atuam no repositório (espelho curto apontando para o CLAUDE.md, ou symlink) | Apenas Claude Code                                 |
@@ -402,6 +440,8 @@ implementada. O futuro também recebe critérios.>
   a define"> e os critérios de aceitação.
 - Uma fase só começa quando todos os checkboxes da anterior estão marcados,
   exceto fases marcadas como opcionais, que podem ser puladas.
+- Detalhe por tarefa: fase corrente e próxima; fases além ficam com objetivo
+  e dependências até se aproximarem (regra 9).
 - <Regras transversais do projeto: "toda borda entra atrás de um protocolo
   mockável", "i18n é fundação transversal", etc.>
 - Desvios são registrados na própria tarefa: o que mudou e por quê ficam no
@@ -422,6 +462,14 @@ Objetivo: <...>.
 Depende de: Fase 0 completa.
 
 - [ ] T1.1 — ...
+
+## Fase 2 — <nome>
+
+Objetivo: <...>.
+Depende de: Fase 1 completa.
+
+<Fase além da próxima: só objetivo e dependências; as tarefas são detalhadas
+na rodada que fechar a Fase 1 (regra 9).>
 
 ## Riscos e dependências
 
@@ -479,7 +527,9 @@ alias novo.>
 (camada de dados, API, auth, i18n, concorrência, integrações frágeis), cada uma
 com o padrão adotado, as regras do que atravessa e do que nunca atravessa a
 fronteira, e um snippet mínimo quando prosa não ensina. Derive as seções das
-áreas reais identificadas, não de um sumário genérico.>
+áreas reais identificadas, não de um sumário genérico. Seção que passar de
+~meia página extrai para docs/<tema>.md, deixando um ponteiro de uma linha
+(regra 9).>
 
 ## Convenções
 
@@ -493,6 +543,14 @@ fronteira, e um snippet mínimo quando prosa não ensina. Derive as seções das
 - <Testes: o que é unitário (roda sem tocar borda real) e o que é borda fina
   (smoke ou manual), e a regra que mantém a borda fina.>
 - <Env e segredos: split client/server; onde cada segredo pode viver.>
+- <Escolhas de ecossistema fixadas: qual das alternativas válidas da stack
+  este projeto usa (estrutura de pastas, estado, roteamento, estilo de teste),
+  com "(fonte: docs oficiais <stack> <versão>, <mês/ano>)" quando vier de
+  pesquisa.>
+- <Bordas e pesquisa — só quando o projeto tem bordas frágeis: "integração
+  nova com serviço externo, lib fora da stack ou recurso de framework ainda
+  não usado aqui → consultar a doc oficial atual antes de implementar e
+  registrar a versão consultada".>
 
 ## Nunca fazer
 
@@ -532,7 +590,9 @@ cogitadas) e por que ainda não foi feito.>
      formulada em negrito (regra 2), "Nunca fazer" com 4 ou mais proibições
      justificadas na linha (regra 3), o estado e o formato das decisões
      (regras 5 e 6), a rastreabilidade tarefas → módulos, riscos → constraints
-     numeradas, decisões → tarefas (regra 8) e placeholders/"TBD" (regra 9).
+     numeradas, decisões pendentes → tarefas (regra 8) e placeholders/"TBD"
+     (regra 9); acima de ~200 linhas no CLAUDE.md ele avisa, sem falhar, para
+     compactar ou extrair (regra 9).
      Sem o script, confira esses mesmos itens manualmente.
    - **De julgamento** (sempre auto-aplicadas): cada critério de aceitação
      passa no teste do terceiro (regra 4); teste de deleção — linha cuja

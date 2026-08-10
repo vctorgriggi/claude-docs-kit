@@ -110,12 +110,17 @@ Prontidão: pronto para propor.
   formato do relatório (texto simples vs JSON).
 - **Sem ROADMAP** — as ambições além do SPEC cabem na seção "Planejado"; um
   arquivo a mais não teria razão de existir.
+- **Pesquisa de stack: pulada** — stdlib pura por regra de ouro, sem pontos
+  de escolha reais no ecossistema; anuncio em vez de pesquisar por
+  completude (§0.2.9).
 
 Esqueleto de fases: Fase 0 (fundação testada) → Fase 1 (CLI utilizável em
 CI). Aprova, ou ajusta?
 
-> _Escala honesta duas vezes: "Nunca fazer" não nasce vazia nem genérica, e o
-> ROADMAP é recusado com justificativa pela paleta de arquivos (§4)._
+> _Escala honesta três vezes: "Nunca fazer" não nasce vazia nem genérica, o
+> ROADMAP é recusado com justificativa pela paleta de arquivos (§4), e a
+> pesquisa de stack é pulada com anúncio — pesquisar stdlib pura seria
+> ritual, não informação._
 
 **Usuário:** aprovado
 

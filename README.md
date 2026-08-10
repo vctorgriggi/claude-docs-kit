@@ -41,8 +41,10 @@ de commands segue suportado e é o usado aqui.
 
 `/bootstrap` tem dois modos. Em projeto novo, entrevista em blocos curtos
 (problema e usuários; recorte da primeira entrega; stack e restrições;
-disciplina), propõe o conjunto de arquivos, o esqueleto de fases e a regra de
-ouro, e só gera após aprovação. Em projeto existente, varre o repositório
+disciplina), consulta a documentação oficial da stack declarada quando ela tem
+pontos de escolha (cada um vira convenção fixada com fonte e versão, ou
+decisão em aberto), propõe o conjunto de arquivos, o esqueleto de fases e a
+regra de ouro, e só gera após aprovação. Em projeto existente, varre o repositório
 primeiro (manifests, árvore de pastas, configs, documentação existente,
 histórico do git, amostragem de código) e devolve um relatório em três partes:
 observado, inferido e não determinável. A geração acontece após a validação do
@@ -51,8 +53,11 @@ pergunta ou decisão em aberto.
 
 `/rodada` fecha um marco: marca tarefas concluídas no PLAN, move o que foi
 implementado da seção "Planejado" para o corpo do SPEC e registra convenções
-novas e decisões resolvidas no CLAUDE.md. Histórico nunca é apagado e nenhum
-código é alterado durante a sincronização.
+novas e decisões resolvidas no CLAUDE.md. Quando uma fase fecha, a seguinte
+ganha seu detalhe por tarefa (rolling wave). Histórico não se apaga
+silenciosamente — fase antiga e decisão resolvida compactam dentro do diff
+aprovado, com o git guardando a íntegra — e nenhum código é alterado durante
+a sincronização.
 
 ## O que ele gera
 
@@ -87,7 +92,8 @@ referência viva da gramática.
 - Cada arquivo tem um único papel e o declara no próprio cabeçalho.
 - Fronteira entre presente e futuro no SPEC: tudo que ainda não existe fica
   isolado na seção "Planejado", o que evita que um agente trate fase futura
-  como escopo atual.
+  como escopo atual. A seção existe mesmo sem nada planejado ("Nada planejado
+  no momento."): fronteira ausente é ambígua; fronteira vazia não.
 - Regra de ouro: uma disciplina arquitetural central por projeto, da qual as
   demais regras derivam.
 - Nunca fazer: proibições absolutas e específicas, cada uma com a justificativa
@@ -96,10 +102,16 @@ referência viva da gramática.
   verificação.
 - Documento vivo: convenções decididas durante a implementação são registradas
   no momento; decisões em aberto usam checkbox e preservam o histórico quando
-  resolvidas.
+  resolvidas. Histórico compacta nas rodadas quando deixa de mudar o
+  comportamento de um agente; o git guarda a íntegra.
 - Rastreabilidade: o PLAN referencia as constraints do SPEC, as tarefas
   referenciam os módulos do CLAUDE.md e as decisões apontam as tarefas que
   dependem delas.
+- Escolhas de ecossistema são fixadas por projeto, nunca deixadas ao gosto de
+  cada sessão; convenção vinda de pesquisa carrega fonte e versão na linha.
+- Escala honesta no espaço e no tempo: nada de placeholder; o PLAN detalha
+  tarefas só da fase corrente e da próxima; seção de área do CLAUDE.md que
+  crescer além de ~meia página extrai para docs/<tema>.md.
 - pt-BR nos documentos de agente (vocabulário técnico em inglês); língua do
   público nos documentos públicos.
 
@@ -108,9 +120,13 @@ referência viva da gramática.
 - **`bin/docscheck.mjs`** — verificador executável dos invariantes mecânicos
   da gramática: fronteira presente/futuro com o blockquote de reforço, regra
   de ouro em negrito, "Nunca fazer" com 4+ proibições justificadas na linha,
-  formato e estado das decisões, rastreabilidade cruzada (tarefas → módulos,
-  riscos → constraints, decisões → tarefas), zero "TBD" e papel declarado no
-  cabeçalho. Node ≥ 20, zero dependências, instalação por cópia. Uso:
+  formato e estado das decisões, rastreabilidade cruzada (tarefas → módulos
+  definidos na Estrutura ou nos títulos do CLAUDE.md, riscos → constraints,
+  decisões pendentes → tarefas), zero "TBD" e papel declarado no cabeçalho. Conteúdo de
+  blocos de código cercados é ignorado (um exemplo de doc dentro de um fence
+  não é gramática do documento). Acima de ~200 linhas no CLAUDE.md, emite
+  aviso — sem mudar o exit code — sugerindo compactação ou extração (regra 9).
+  Node ≥ 20, zero dependências, instalação por cópia. Uso:
   `node ~/.claude/bin/docscheck.mjs <dir>`; exit 0 sem violações, 1 com
   violações, 2 erro de uso. Os comandos o executam nas checagens de entrega
   quando instalado, e o CI de um projeto-alvo pode copiá-lo e rodá-lo também.
@@ -145,6 +161,10 @@ referência viva da gramática.
 - Os comandos usam o formato clássico (`~/.claude/commands/`), não o formato
   mais recente de skills; se o formato clássico for depreciado, o kit precisa
   ser portado.
+- O `/bootstrap` pré-autoriza WebFetch/WebSearch para a pesquisa de stack
+  (docs oficiais da versão declarada). Quem preferir superfície mínima remove
+  as duas do `allowed-tools`; o passo degrada sem quebrar — pontos de escolha
+  viram decisões em aberto.
 
 ## Personalização
 
@@ -155,7 +175,9 @@ incremente a versão da gramática declarada no topo da seção, confira
 (resultado divergente que não era a intenção da edição é deriva) e rode
 `./install.sh` novamente (a cópia em `~/.claude/commands/` não se atualiza
 sozinha). Se a mudança afetar um invariante mecânico, atualize o `docscheck`
-junto e rode `node --test test/docscheck.test.mjs` e
+junto — a constante `GRAMATICA` dele acompanha a versão declarada no
+`bootstrap.md`, e o teste acusa divergência — e rode
+`node --test test/docscheck.test.mjs` e
 `node bin/docscheck.mjs examples/fixtures/linkcheck` (o CI cobre os dois);
 para mudanças de comportamento dos comandos, `./scripts/regressao-smoke.sh`
 roda os casos baratos da regressão em headless (custa tokens). Renomear um comando é renomear o arquivo: `rodada.md` vira `/rodada`,

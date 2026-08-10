@@ -1,5 +1,5 @@
 ---
-description: Fecha um marco de implementação. Sincroniza SPEC.md, PLAN.md e CLAUDE.md com o estado real do código e registra as decisões tomadas no caminho.
+description: Fecha um marco de implementação. Sincroniza SPEC.md, PLAN.md e CLAUDE.md com o estado real do código, registra as decisões tomadas no caminho e compacta histórico antigo dentro do diff aprovado.
 argument-hint: [nome da rodada ou resumo do que foi feito]
 # Write/Edit ausentes de propósito: cada escrita passa pelo prompt de permissão
 # do harness — um segundo gate além do aval conversacional exigido no passo 2.
@@ -34,23 +34,37 @@ do histórico do git ou desta conversa.
 
 - **PLAN.md**: marcar `[x]` as tarefas concluídas; registrar desvios na própria
   tarefa ("feito diferente: <o quê>; motivo: <por quê>"); tarefas cortadas
-  permanecem no documento, anotadas, nunca apagadas; adicionar tarefas
+  permanecem anotadas até a compactação da fase (abaixo); adicionar tarefas
   descobertas na fase correta; atualizar a seção de Riscos se algum se
-  materializou ou se dissolveu.
+  materializou ou se dissolveu; se esta rodada fechou uma fase, detalhar as
+  tarefas da fase que virou a próxima (rolling wave, regra 9).
 - **SPEC.md**: mover o que foi implementado da seção "Planejado" para o corpo,
-  reescrito no presente (o SPEC descreve o estado atual); atualizar constraints
+  reescrito no presente (o SPEC descreve o estado atual); feature removida do
+  produto vira uma linha em "Fora do escopo" com o porquê — a guarda contra
+  re-propor fica no documento, a cronologia fica no git; atualizar constraints
   e critérios de aceitação se a realidade os mudou; registrar novas exclusões
   de escopo decididas.
 - **CLAUDE.md**: registrar convenções novas com a justificativa em poucas
   palavras; resolver decisões em aberto (`[x] ... — resolvido: <como> (rodada
 <nome>)`); adicionar dívidas deliberadas ao inventário "Gaps conhecidos", com
-  a justificativa e a indicação de onde vive o paliativo; atualizar estrutura,
-  aliases e instruções de execução se mudaram.
+  a justificativa e a indicação de onde vive o paliativo; aposentar gap que o
+  código desta janela sanou (a entrada sai; o corte aparece no resumo);
+  atualizar estrutura, aliases e instruções de execução se mudaram.
+- **Compactação e extração** (no mesmo diff, cobertas pelo mesmo aval): fase
+  cujos checkboxes fecharam todos em rodadas anteriores colapsa em um resumo
+  curto no estilo da Fase 0 do Modo B — objetivo, o que ficou de pé e os
+  desvios que ainda ensinam; decisão resolvida em rodada anterior compacta
+  para uma linha, sem referência a tarefas já colapsadas; linha que nem
+  compactada muda como um agente age é cortada (teste de deleção — o git
+  guarda a íntegra); seção de área do CLAUDE.md que passou de ~meia página
+  extrai para docs/<tema>.md, com um ponteiro de uma linha no lugar (regra 9).
 
 ## 3. Nunca
 
-- Apagar histórico. Decisão resolvida permanece, anotada; tarefa cortada
-  permanece, explicada.
+- Apagar histórico silenciosamente. A compactação (§2) entra no diff proposto
+  e passa pelo aval como qualquer edição; fora dela, decisão resolvida
+  permanece anotada e tarefa cortada permanece explicada. Reescrever o passado
+  para contar outra história, nunca.
 - Corrigir código durante a sincronização. Quando doc e código divergem, o
   código é a verdade: atualize o doc (§2); dívida deliberada confirmada entra
   em "Gaps conhecidos" (§2); nunca edite código aqui.
@@ -66,7 +80,8 @@ do histórico do git ou desta conversa.
    mecânicos: fronteira presente/futuro intacta no SPEC (com o blockquote de
    reforço); formato das decisões (`- [x] **<decisão>** — resolvido: <como>
 (<rodada>)`); rastreabilidade fechada (tarefas → módulos, riscos →
-   constraints numeradas, decisões → tarefas); zero placeholder ou "TBD". Em
+   constraints numeradas, decisões pendentes → tarefas); zero placeholder ou
+   "TBD". Em
    qualquer caso, aplique as checagens de julgamento: diff mínimo (seções que
    não mudaram não foram reescritas) e teste de deleção nos trechos novos
    (linha que não muda como um agente age no código é cortada).

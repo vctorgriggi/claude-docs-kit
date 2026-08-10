@@ -81,8 +81,8 @@ CLAUDE.md — depois:
 ```
 ## Decisões em aberto
 
-- [x] Formato do relatório — resolvido: texto simples; JSON adiado para o
-      roadmap (rodada fase-1).
+- [x] **Formato do relatório** — resolvido: texto simples; JSON adiado
+      para o roadmap (rodada fase-1).
 
 Nenhuma pendente.
 ```
