@@ -1,4 +1,4 @@
-# Exemplo 1: /bootstrap novo — entrevista, proposta, geração
+# Exemplo 1: /docs:fundar novo — entrevista, proposta, geração
 
 Sessão do Modo A sobre diretório vazio, com a semente passada na chamada.
 Convenção do corpus: blockquotes em itálico são anotações deste documento;
@@ -6,11 +6,17 @@ todo o resto é a sessão.
 
 ---
 
-**Usuário:** `/bootstrap novo uma CLI que valida links quebrados em arquivos markdown`
+**Usuário:** `/docs:fundar novo uma CLI que valida links quebrados em arquivos markdown`
 
-**Agente:** São 4 blocos curtos de perguntas; ao fim apresento a proposta de
-arquivos e só gero após seu OK. A semente já responde parte do problema;
-começo pelo que falta.
+**Agente:** [lê `~/.claude/docs-kit/GRAMATICA.md`; o diretório está vazio → Modo A]
+
+São 4 blocos curtos de perguntas; ao fim apresento a proposta de arquivos e só
+gero após seu OK. A semente já responde parte do problema; começo pelo que
+falta.
+
+> _O texto normativo é carregado antes de qualquer coisa e nenhum comando o
+> parafraseia — se ele não estivesse instalado, a sessão pararia aqui pedindo
+> `./install.sh`._
 
 Bloco 1 — problema e usuários:
 
@@ -112,7 +118,7 @@ Prontidão: pronto para propor.
   arquivo a mais não teria razão de existir.
 - **Pesquisa de stack: pulada** — stdlib pura por regra de ouro, sem pontos
   de escolha reais no ecossistema; anuncio em vez de pesquisar por
-  completude (§0.2.9).
+  completude (regra 11).
 
 Esqueleto de fases: Fase 0 (fundação testada) → Fase 1 (CLI utilizável em
 CI). Aprova, ou ajusta?
@@ -144,11 +150,11 @@ deleção: duas linhas redundantes cortadas do CLAUDE.md — reparado.
 
 Resumo: SPEC.md (o quê e por quê; âncoras, HTTP e JSON em Planejado), PLAN.md
 (Fase 0 core puro, Fase 1 CLI), CLAUDE.md (regra de ouro: zero dependências;
-decisão em aberto: formato do relatório). Rode `/rodada <nome>` ao fechar
+decisão em aberto: formato do relatório). Rode `/docs:rodada <nome>` ao fechar
 cada marco.
 
 > _As checagens de entrega re-aplicam os invariantes ao artefato já escrito —
 > a norma vira gate, e uma falha real (linhas redundantes) foi reparada antes
 > da entrega. O estado destes arquivos após a rodada "fase-1" está em
 > [`fixtures/linkcheck/`](fixtures/linkcheck/); a diferença entre o gerado
-> aqui e aquele estado é exatamente o diff do [exemplo 3](03-rodada.md)._
+> aqui e aquele estado é exatamente o diff do [exemplo 5](05-rodada.md)._

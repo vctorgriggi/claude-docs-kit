@@ -12,10 +12,20 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: testes do docscheck
-        run: node --test test/docscheck.test.mjs
+      # Glob, não a lista: um arquivo de teste novo entra sozinho. Listar à mão
+      # é o tipo de completude que depende de alguém lembrar — e o teste
+      # test/completude.test.mjs cobra justamente isso.
+      - name: suítes de teste (docscheck, mutação, coerência, completude)
+        run: node --test test/*.test.mjs
+      - name: as tabelas geradas (GRAMATICA §5 e README) em dia com o catálogo
+        run: node scripts/gerar-gramatica.mjs --check
       - name: testes do fixture linkcheck (referência viva da gramática)
         run: node --test
         working-directory: examples/fixtures/linkcheck
-      - name: docscheck contra o doc-set de referência
-        run: node bin/docscheck.mjs examples/fixtures/linkcheck
+      - name: testes do fixture pedidos (referência viva do DOMAIN.md)
+        run: node --test
+        working-directory: examples/fixtures/pedidos
+      - name: docscheck estrito contra os doc-sets de referência (zero avisos)
+        run: |
+          node bin/docscheck.mjs --strict examples/fixtures/linkcheck
+          node bin/docscheck.mjs --strict examples/fixtures/pedidos

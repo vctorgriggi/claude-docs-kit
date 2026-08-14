@@ -8,8 +8,8 @@
 # completa da regressão.
 #
 # Uso: ./scripts/regressao-smoke.sh [a|b]   (padrão: ambos)
-#   a — regressão #1: /bootstrap em diretório vazio → entrevista; nada gerado
-#   b — regressões #2/#6/#13: /bootstrap existente em notas-api → relatório em
+#   a — regressão #1: /docs:fundar em diretório vazio → entrevista; nada gerado
+#   b — regressões #2/#6/#13: /docs:fundar existente em notas-api → relatório em
 #       três listas; 3 rotas para a doc existente; git indisponível anunciado
 set -euo pipefail
 
@@ -26,9 +26,16 @@ command -v "$CLAUDE_BIN" >/dev/null || {
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
-preparar() { # preparar <dir> — instala os comandos no escopo do projeto
-  mkdir -p "$1/.claude/commands"
-  cp "$RAIZ"/commands/*.md "$1/.claude/commands/"
+preparar() { # preparar <dir> — instala comandos, gramática e templates no escopo do projeto
+  mkdir -p "$1/.claude/commands/docs"
+  cp "$RAIZ"/commands/docs/*.md "$1/.claude/commands/docs/"
+  # Os comandos leem a gramática e os templates em runtime, de ~/.claude/docs-kit.
+  # O smoke depende da instalação real: sem ela, todo comando para no passo 0 e
+  # o teste mediria a ausência do arquivo, não a gramática.
+  if [ ! -f "${HOME}/.claude/docs-kit/GRAMATICA.md" ]; then
+    echo "erro: ~/.claude/docs-kit/GRAMATICA.md ausente — rode ./install.sh antes" >&2
+    exit 2
+  fi
 }
 
 checar() { # checar <log> <descrição> <padrão grep -E>
@@ -52,9 +59,9 @@ rodar() { # rodar <dir> <prompt> <log>
 }
 
 if [ "$CASO" = "a" ] || [ "$CASO" = "todos" ]; then
-  echo "caso a — /bootstrap em diretório vazio (regressão #1)"
+  echo "caso a — /docs:fundar em diretório vazio (regressão #1)"
   DIR="$TMP/vazio" && mkdir -p "$DIR" && preparar "$DIR"
-  rodar "$DIR" "/bootstrap" "$TMP/a.log"
+  rodar "$DIR" "/docs:fundar" "$TMP/a.log"
   checar "$TMP/a.log" "abre a entrevista em blocos" "bloco"
   if ls "$DIR"/SPEC.md "$DIR"/PLAN.md "$DIR"/CLAUDE.md >/dev/null 2>&1; then
     echo "  FALHA: gerou arquivo antes do aval da Proposta"
@@ -65,10 +72,10 @@ if [ "$CASO" = "a" ] || [ "$CASO" = "todos" ]; then
 fi
 
 if [ "$CASO" = "b" ] || [ "$CASO" = "todos" ]; then
-  echo "caso b — /bootstrap existente em notas-api (regressões #2, #6, #13)"
+  echo "caso b — /docs:fundar existente em notas-api (regressões #2, #6, #13)"
   DIR="$TMP/notas-api" && mkdir -p "$DIR"
   cp -R "$RAIZ/examples/fixtures/notas-api/." "$DIR/" && preparar "$DIR"
-  rodar "$DIR" "/bootstrap existente" "$TMP/b.log"
+  rodar "$DIR" "/docs:fundar existente" "$TMP/b.log"
   checar "$TMP/b.log" "relatório traz a lista Observado" "observado"
   checar "$TMP/b.log" "relatório traz a lista Não determinável" "não determin"
   checar "$TMP/b.log" "oferece as 3 rotas para a doc existente" "rotas|auditar"
