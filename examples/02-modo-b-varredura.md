@@ -1,4 +1,4 @@
-# Exemplo 2: /bootstrap existente — varredura, relatório em três listas, gate
+# Exemplo 2: /docs:fundar existente — varredura, relatório em três listas, gate
 
 Sessão do Modo B sobre [`fixtures/notas-api/`](fixtures/notas-api/), em
 contexto limpo (o fixture não tem repositório git — de propósito; ver a
@@ -7,10 +7,11 @@ sessão.
 
 ---
 
-**Usuário:** `/bootstrap existente`
+**Usuário:** `/docs:fundar existente`
 
-**Agente:** [varre: manifest, árvore, configs, documentação existente, git,
-amostragem de código — sem perguntar nada antes do relatório]
+**Agente:** [lê `~/.claude/docs-kit/GRAMATICA.md`; depois varre: manifest,
+árvore, configs, documentação existente, git, amostragem de código — sem
+perguntar nada antes do relatório]
 
 Relatório de varredura.
 
@@ -95,14 +96,20 @@ OK, gero SPEC, PLAN e CLAUDE registrando:
    Revisitar se a topologia mudar.
 ```
 
-Checagens de entrega: fronteira presente/futuro — ok; critérios de aceitação
-descrevem o comportamento real verificado — ok; rastreabilidade (tarefa do
-workspaces → decisão desta conversa; risco → G1) — ok; zero placeholder — ok.
+Checagens de entrega: `docscheck` limpo; fronteira presente/futuro — ok;
+critérios de aceitação descrevem o comportamento real verificado — ok;
+rastreabilidade (tarefa do workspaces → decisão desta conversa; risco → G1) —
+ok; zero placeholder — ok.
 
 Resumo: SPEC.md descreve a API atual (o dump admin incluído — comportamento
-real); PLAN.md abre com Fase 0 marcada `[x]` resumindo o que existe e propõe
-a limpeza do manifest; CLAUDE.md migrado para a gramática com G1 no
-inventário e a decisão de padrão de erro em aberto.
+real); PLAN.md **abre direto na fase corrente**, com a limpeza do manifest, e
+uma linha diz o que já está de pé; CLAUDE.md migrado para a gramática com G1
+no inventário e a decisão de padrão de erro em aberto.
+
+> _O PLAN não ganha uma "Fase 0" com o inventário do que já existe marcado
+> `[x]`: isso é história, e história que não muda o comportamento de um agente
+> não entra (regra 2). O que já está construído é descrito pelo SPEC, no
+> presente — e o plano guarda só o que falta._
 
 > _Três regras anti-alucinação em ação: a intenção ("deliberado", "resto de
 > migração") só entrou depois de dita pelo usuário; o pedido "pode limpar"

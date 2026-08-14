@@ -36,6 +36,8 @@ rodar em CI ou pre-commit.
 ### Fora do escopo
 
 - Corrigir links automaticamente (a ferramenta reporta, não edita).
+- Saída em formatos alternativos além do texto simples enquanto não houver
+  consumidor real — uma saída só mantém o core sem formatador.
 
 ## Módulos
 
@@ -45,7 +47,8 @@ sem I/O de processo) e `cli` (argv, relatório, exit code). Nada de
 
 ## Stack
 
-- **Node ≥ 20, ESM** — stdlib apenas; testes com `node:test`.
+- **Node, ESM** — stdlib apenas; testes com `node:test`. As versões mínimas
+  vivem na tabela de Stack do CLAUDE.md.
 
 ## Constraints técnicas
 
@@ -78,5 +81,5 @@ com schema estável.
 
 ## Decisões em aberto (a confirmar)
 
-- [x] **Formato do relatório** — resolvido: texto simples por padrão; JSON
-      adiado para o roadmap (rodada fase-1).
+- [ ] **Timeout padrão dos links externos** — 5s favorece o CI, 10s favorece
+      rede ruim; sem consumidor real ainda para arbitrar (afeta T2.2).

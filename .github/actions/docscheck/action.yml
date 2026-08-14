@@ -1,0 +1,41 @@
+name: docscheck
+description: >-
+  Verifica os invariantes mecânicos da gramática do claude-docs-kit no doc-set
+  do repositório e a ancoragem dele no código.
+
+inputs:
+  dir:
+    description: >-
+      Diretório do doc-set a verificar. Aceita vários separados por espaço —
+      nesse modo, diretório sem doc-set é pulado em silêncio e o exit agrega.
+    required: false
+    default: "."
+  strict:
+    description: >-
+      "true" promove as famílias calibráveis (H — presente permanente,
+      J — jurisdição, A — ancoragem doc↔código) de aviso para violação.
+    required: false
+    default: "false"
+  docscheck:
+    description: >-
+      Caminho do docscheck.mjs dentro do repositório. Copie
+      bin/docscheck.mjs do claude-docs-kit para cá e aponte.
+    required: false
+    default: ".github/docscheck.mjs"
+
+runs:
+  using: composite
+  steps:
+    - name: verificar o doc-set
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [ ! -f "${{ inputs.docscheck }}" ]; then
+          echo "::error::docscheck não encontrado em ${{ inputs.docscheck }}."
+          echo "Copie bin/docscheck.mjs do claude-docs-kit para esse caminho."
+          exit 2
+        fi
+        args=()
+        [ "${{ inputs.strict }}" = "true" ] && args+=(--strict)
+        # shellcheck disable=SC2086 — `dir` pode trazer vários caminhos
+        node "${{ inputs.docscheck }}" "${args[@]}" ${{ inputs.dir }}

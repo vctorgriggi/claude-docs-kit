@@ -7,6 +7,9 @@ escrevemos código aqui**, não documentação. Quando uma convenção for decid
 durante a implementação, registre-a aqui. Contexto detalhado mora em @SPEC.md
 (o quê e por quê) e @PLAN.md (ordem de execução).
 
+**Fase atual = links externos (HTTP).** O core interno e a CLI estão de pé; o
+relatório JSON é fase posterior e não deve ser antecipado.
+
 ## Regra de ouro
 
 **Zero dependências de runtime: toda funcionalidade usa apenas a stdlib do
@@ -44,19 +47,31 @@ node --test             # testes
   recebe caminhos e devolve dados (mantém os critérios de aceitação
   testáveis sem subprocess).
 - Slug de âncora: minúsculas, NFD sem diacríticos, não-alfanumérico vira
-  hífen (decidido na fase-1: âncoras acentuadas falhavam sem normalização).
+  hífen (âncora acentuada não casa com o alvo sem a normalização).
+- Relatório: texto simples é a única saída; formato alternativo entra apenas
+  com consumidor real (uma saída só mantém o core sem formatador).
 - Erros de uso saem pela `cli.js` com exit 2; o core lança `Error` simples e
   nunca decide exit code.
+- Borda de rede: toda chamada HTTP entra atrás de um fetcher injetável, para
+  a suíte unitária rodar offline.
+
+## Nunca fazer
+
+- Nunca adicionar dependência de runtime — instalação por cópia é constraint
+  do SPEC; supply chain em ferramenta de CI é risco desproporcional.
+- Nunca chamar `process.exit` dentro de `check.js` — mata a testabilidade do
+  core sem subprocess.
+- Nunca abrir socket em teste unitário — a suíte tem que passar offline e em
+  runner sem rede.
+- Nunca corrigir link automaticamente — a ferramenta reporta e não edita
+  (está em "Fora do escopo" no SPEC).
 
 ## Gaps conhecidos
 
-1. **G1 — âncoras de headings HTML inline não são detectadas** — aceito na
-   fase-1 (sem parser HTML na stdlib); paliativo: os docs do projeto usam
-   apenas headings markdown. Revisitar se surgir falso negativo real.
+1. **G1 — âncoras de headings HTML inline não são detectadas** — sem parser
+   HTML na stdlib; paliativo: os docs do projeto usam apenas headings
+   markdown. Revisitar se surgir falso negativo real.
 
 ## Decisões em aberto
-
-- [x] **Formato do relatório** — resolvido: texto simples; JSON adiado para
-      o roadmap (rodada fase-1).
 
 Nenhuma pendente.
