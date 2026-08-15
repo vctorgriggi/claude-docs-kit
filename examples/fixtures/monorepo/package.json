@@ -1,0 +1,11 @@
+{
+  "name": "tarifa",
+  "private": true,
+  "type": "module",
+  "workspaces": ["packages/*"],
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "test": "node --test packages/*/test/*.test.js",
+    "tarifa": "node packages/cli/src/cli.js 250"
+  }
+}

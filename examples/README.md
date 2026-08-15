@@ -39,7 +39,7 @@ Dois pares valem mais que os arquivos isolados:
 
 ## Doc-sets de referência
 
-Os dois passam `docscheck --strict` com zero avisos no CI. É a única forma
+Os três passam `docscheck --strict` com **zero achados** no CI. É a única forma
 honesta de manter um exemplo confiável: se a gramática mudar e o exemplo não
 acompanhar, o build quebra.
 
@@ -47,6 +47,7 @@ acompanhar, o build quebra.
 | --- | --- |
 | [`fixtures/linkcheck/`](fixtures/linkcheck/) | A gramática no caso simples — core puro, borda fina, uma fase viva e uma decisão em aberto. É a CLI dos exemplos 1 e 3, e a referência do SPEC/PLAN/CLAUDE. |
 | [`fixtures/pedidos/`](fixtures/pedidos/) | A referência do `DOMAIN.md` — glossário que define termos sem invadir o SPEC, invariantes `I<n>` rastreados até o nome dos testes, máquina de estados e regras de cálculo com exemplo numérico. |
+| [`fixtures/monorepo/`](fixtures/monorepo/) | O caso de vários pacotes — `A8` (cada `packages/*/CLAUDE.md` com regra de ouro própria, sem copiar o raiz) e `A7` (satélite em `docs/` com ponteiro de ida no contrato e de volta no índice). É o único fixture com workspaces, e o `npm install` dele só linka os pacotes: nada externo entra. |
 | [`fixtures/notas-api/`](fixtures/notas-api/) | Repositório **sem** doc-set, de convenções mistas: é a entrada do exemplo 2 e do smoke de regressão. Não tem SPEC/PLAN/CLAUDE de propósito — é o que o Modo B encontra no mundo real. |
 
 Rodando os fixtures direto:
@@ -54,6 +55,7 @@ Rodando os fixtures direto:
 ```bash
 node bin/docscheck.mjs --strict examples/fixtures/linkcheck
 node bin/docscheck.mjs --strict examples/fixtures/pedidos
+node bin/docscheck.mjs --strict examples/fixtures/monorepo
 node bin/docscheck.mjs --explain H2      # o porquê de uma regra e seus exemplos
 
 cd examples/fixtures/pedidos && node --test   # os testes nomeiam os invariantes

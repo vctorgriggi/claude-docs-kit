@@ -18,6 +18,13 @@ permanente** — proíbe cronologia: o que não muda como um agente age agora n�
 fica. E o verificador confere não só a forma dos documentos, mas se o que eles
 afirmam sobre o repositório ainda é verdade.
 
+**O contrato escrito aqui tem quem o cobre.** O
+[claude-code-kit](https://github.com/vctorgriggi/claude-code-kit) é o irmão
+deste: ele lê o `CLAUDE.md` gerado por aqui e acusa o código que o contradiz —
+import cruzando a fronteira declarada na Estrutura, símbolo que o "Nunca fazer"
+proíbe. **Um escreve o contrato, o outro cobra.** Os dois funcionam sozinhos; o
+segundo só perde a lâmina mais afiada quando não há doc-set.
+
 ## O ciclo
 
 ```
@@ -80,8 +87,9 @@ resumo: 3 violação(ões) da gramática        # exit 1
 
 Os doc-sets completos estão em [`examples/fixtures/`](examples/fixtures/) —
 [`linkcheck`](examples/fixtures/linkcheck/) para o caso simples,
-[`pedidos`](examples/fixtures/pedidos/) para domínio com invariantes. As
-sessões que os produziram estão em [`examples/`](examples/).
+[`pedidos`](examples/fixtures/pedidos/) para domínio com invariantes,
+[`monorepo`](examples/fixtures/monorepo/) para vários pacotes e satélites em
+`docs/`. As sessões que os produziram estão em [`examples/`](examples/).
 
 ## O que ele gera
 
@@ -244,12 +252,13 @@ Um diretório é "verifique isto" — a ausência de doc-set é erro de uso. Vá
 ```
 $ docscheck ~/Workspaces/*
 linkcheck  ok
+monorepo   ok
 notas-api  2 violação(ões)
              CLAUDE.md:1 [E1] sem blockquote de papel logo abaixo do título (§1)
              CLAUDE.md:1 [C1] sem seção "Regra de ouro" (regra 3)
 pedidos    ok
 
-resumo: 1 de 3 doc-set(s) com violação
+resumo: 1 de 4 doc-set(s) com violação
 ```
 
 ### O estado chegar até você, em vez de esperar ser procurado
@@ -333,16 +342,19 @@ uma semana no linkcheck, do hook na segunda à rodada na sexta, com as partes
 que não são comando — verificador no terminal, panorama entre projetos, CI.
 
 Depois dele, as transcrições anotadas em [`examples/`](examples/), uma por
-comando, e dois doc-sets de referência com código real por baixo:
+comando, e três doc-sets de referência com código real por baixo:
 
 - [`fixtures/linkcheck/`](examples/fixtures/linkcheck/) — a gramática no caso
   simples: core puro, borda fina, uma fase viva.
+- [`fixtures/monorepo/`](examples/fixtures/monorepo/) — o caso de vários
+  pacotes: recipe local por pacote sem repetir o contrato raiz (`A8`), e
+  satélite em `docs/` com ponteiro de ida e volta (`A7`).
 - [`fixtures/pedidos/`](examples/fixtures/pedidos/) — a referência do
   `DOMAIN.md`: glossário, invariantes `I<n>` rastreados até o nome dos testes,
   máquina de estados e regras de cálculo.
 
-Os dois passam `docscheck --strict` com zero avisos no CI — é a única forma
-honesta de manter um exemplo confiável.
+Os três passam `docscheck --strict` com **zero achados** no CI — é a única
+forma honesta de manter um exemplo confiável.
 
 ## Limitações conhecidas
 

@@ -25,7 +25,14 @@ jobs:
       - name: testes do fixture pedidos (referência viva do DOMAIN.md)
         run: node --test
         working-directory: examples/fixtures/pedidos
+      # `npm install` aqui só linka os dois workspaces entre si — o fixture não
+      # tem dependência externa, e é o que faz `@tarifa/nucleo` resolver pelo
+      # nome publicado em vez do caminho, que é justamente o que ele demonstra.
+      - name: testes do fixture monorepo (referência viva do recipe por pacote)
+        run: npm install --no-audit --no-fund && npm test
+        working-directory: examples/fixtures/monorepo
       - name: docscheck estrito contra os doc-sets de referência (zero avisos)
         run: |
           node bin/docscheck.mjs --strict examples/fixtures/linkcheck
           node bin/docscheck.mjs --strict examples/fixtures/pedidos
+          node bin/docscheck.mjs --strict examples/fixtures/monorepo

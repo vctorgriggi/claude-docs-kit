@@ -1,0 +1,7 @@
+{
+  "name": "@tarifa/cli",
+  "version": "1.2.0",
+  "type": "module",
+  "bin": { "tarifa": "src/cli.js" },
+  "dependencies": { "@tarifa/nucleo": "1.2.0" }
+}

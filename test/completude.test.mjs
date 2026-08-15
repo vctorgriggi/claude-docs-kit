@@ -38,6 +38,14 @@ function blocoDeInvocacoes(md, marca) {
 const README = await ler("README.md");
 const CI = await ler(".github/workflows/ci.yml");
 
+// Fixture que existe justamente para estar fora da gramática. O notas-api é o
+// que o Modo B encontra no mundo: rodar --strict nele seria checar a ausência
+// de doc-set. Declarado num lugar só, porque dois testes contam com ele — o que
+// cobra fixture órfão e o que confere "os três passam --strict".
+const SUJOS = {
+  "notas-api": "entrada do Modo B: repositório sem doc-set, de convenções mistas",
+};
+
 test("o CI roda todo arquivo de teste do diretório test/", async () => {
   // Listar as suítes à mão no CI era correto por acidente: um arquivo novo
   // passaria a existir sem nunca rodar em lugar nenhum. O glob resolve a
@@ -290,11 +298,6 @@ test("toda regra da gramática é enforçada, referenciada, ou declarada como ju
 });
 
 test("todo fixture é exercitado, ou declarado sujo de propósito", async () => {
-  // notas-api existe justamente sem doc-set: é o que o Modo B encontra no
-  // mundo. Rodar --strict nele seria checar a ausência de gramática.
-  const SUJOS = {
-    "notas-api": "entrada do Modo B: repositório sem doc-set, de convenções mistas",
-  };
   const fixtures = (
     await readdir(path.join(RAIZ, "examples/fixtures"), { withFileTypes: true })
   )
@@ -479,6 +482,22 @@ test("todo panorama documentado é a saída real, não uma lembrança dela", asy
   }
 });
 
+test("o README aponta para o kit irmão", () => {
+  // A relação entre os dois kits é o argumento mais forte de cada um, e existia
+  // só de um lado: o code-kit citava este, este não citava aquele. Quem chegasse
+  // por aqui nunca descobria que o contrato gerado tem quem o cobre.
+  assert.match(
+    README,
+    /claude-code-kit/,
+    "o README não menciona o kit irmão que cobra o contrato gerado",
+  );
+  assert.match(
+    README,
+    /\[claude-code-kit\]\(https:\/\/github\.com\/[^)]+\)/,
+    "o kit irmão é citado sem link — a menção precisa levar a algum lugar",
+  );
+});
+
 test("as famílias do catálogo são contíguas e todas têm nome", async () => {
   // Contíguas porque a ordem do catálogo é a ordem das duas tabelas geradas —
   // família picotada vira tabela picotada. E o mapa de nomes do gerador tem que
@@ -619,9 +638,31 @@ test("as contagens escritas à mão na documentação batem com a realidade", as
   // e o "quatorze" continua lá. Onde a tabela é gerada isso não acontece; onde
   // a prosa conta, este teste conta junto.
   const PALAVRAS = {
+    um: 1, dois: 2, três: 3, tres: 3, quatro: 4, cinco: 5, seis: 6, sete: 7,
+    oito: 8, nove: 9,
     dez: 10, onze: 11, doze: 12, treze: 13, quatorze: 14, catorze: 14,
     quinze: 15, dezesseis: 16, dezessete: 17, dezoito: 18, dezenove: 19, vinte: 20,
   };
+
+  // "Os dois passam --strict" sobreviveu à chegada do terceiro doc-set de
+  // referência. Quantos são sai da contagem de fixtures que não estão
+  // declarados sujos, e não da memória de quem escreveu a frase.
+  const limpos = (
+    await readdir(path.join(RAIZ, "examples/fixtures"), { withFileTypes: true })
+  ).filter((e) => e.isDirectory() && !SUJOS[e.name]).length;
+
+  for (const [arq, texto] of [
+    ["README.md", README],
+    ["examples/README.md", await ler("examples/README.md")],
+  ]) {
+    const m = texto.match(/Os (\p{L}+) passam `docscheck --strict`/u);
+    assert.ok(m, `${arq} não declara quantos doc-sets passam no --strict`);
+    assert.equal(
+      PALAVRAS[m[1].toLowerCase()],
+      limpos,
+      `${arq} diz "os ${m[1]}" e há ${limpos} doc-set(s) de referência`,
+    );
+  }
 
   const normativo = await ler("grammar/GRAMATICA.md");
   const regrasDoSecao2 = [
