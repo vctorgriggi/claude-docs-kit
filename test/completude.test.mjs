@@ -13,6 +13,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readdir, readFile } from "node:fs/promises";
+import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { REGRAS } from "../bin/docscheck.mjs";
@@ -429,6 +430,138 @@ test("a saída de exemplo do README tem o formato que a ferramenta emite", async
     /^resumo: \d+ violação\(ões\)/m,
     "o exemplo não mostra a linha de resumo que a ferramenta imprime",
   );
+});
+
+test("todo panorama documentado é a saída real, não uma lembrança dela", async () => {
+  // A guarda acima confere formato; esta confere verdade. O panorama roda sobre
+  // os fixtures de verdade, então dá para exigir igualdade byte a byte — e é o
+  // único jeito de pegar o exemplo que estava certo quando foi escrito e
+  // envelheceu junto com o fixture. Vale para todo arquivo que mostra o
+  // panorama, não só o README: o mesmo bloco estava em dois lugares, e os dois
+  // tinham envelhecido de formas diferentes.
+  const comPanorama = [];
+  for (const rel of ["README.md", ...(await listar("examples")).map((f) => `examples/${f}`)]) {
+    const bloco = blocoDeInvocacoes(await ler(rel), "$ docscheck ~/");
+    if (bloco) comPanorama.push([rel, bloco]);
+  }
+  assert.ok(comPanorama.length, "nenhum arquivo mostra o panorama entre projetos");
+
+  // Exit 1 é o esperado: o `notas-api` viola de propósito. O que interessa é o
+  // stdout, que o execFileSync entrega no erro.
+  const argv = [
+    path.join(RAIZ, "bin/docscheck.mjs"),
+    // Ordenado: o panorama respeita a ordem dos argumentos, e o README mostra
+    // o resultado de um glob do shell, que vem ordenado. O readdir não vem.
+    ...(await listar("examples/fixtures", ""))
+      .sort()
+      .map((f) => path.join(RAIZ, "examples/fixtures", f)),
+  ];
+  let real;
+  try {
+    real = execFileSync("node", argv, { encoding: "utf8" });
+  } catch (e) {
+    real = e.stdout ?? "";
+  }
+
+  const limpar = (s) =>
+    s
+      .split("\n")
+      .filter((l) => l.trim() && !l.startsWith("$"))
+      .map((l) => l.trimEnd())
+      .join("\n");
+
+  for (const [rel, bloco] of comPanorama) {
+    assert.equal(
+      limpar(bloco),
+      limpar(real),
+      `o panorama de ${rel} diverge do que o docscheck emite hoje sobre os fixtures`,
+    );
+  }
+});
+
+test("as famílias do catálogo são contíguas e todas têm nome", async () => {
+  // Contíguas porque a ordem do catálogo é a ordem das duas tabelas geradas —
+  // família picotada vira tabela picotada. E o mapa de nomes do gerador tem que
+  // cobrir toda letra que aparecer, senão a família some da tabela do README em
+  // silêncio. Antes disto o mapa mandava numa tabela e o catálogo na outra, e
+  // as duas listavam as mesmas 39 regras em ordens diferentes.
+  const { familias } = await import("../scripts/gerar-gramatica.mjs");
+  const prefixos = REGRAS.map((r) => r.id[0]);
+  const unicos = familias();
+
+  assert.equal(
+    unicos.length,
+    new Set(prefixos).size,
+    "alguma família aparece em dois blocos do catálogo",
+  );
+  for (const [i, p] of prefixos.entries()) {
+    if (i === 0) continue;
+    const anterior = prefixos[i - 1];
+    if (p === anterior) continue;
+    assert.ok(
+      !prefixos.slice(0, i - 1).includes(p),
+      `a família ${p} está picotada no catálogo: ${REGRAS[i].id} reabre um bloco já fechado`,
+    );
+  }
+
+  const tabela = (await ler("README.md")).match(/REGRAS:início[\s\S]*?REGRAS:fim/)[0];
+  const naTabela = [...tabela.matchAll(/\| \*\*[^*]+\*\*[^|]*\| ((?:`[A-Z]\d` ?)+)/g)].map(
+    (m) => m[1].trim()[1],
+  );
+  assert.deepEqual(
+    naTabela,
+    unicos,
+    "a ordem das famílias na tabela do README não é a do catálogo",
+  );
+});
+
+test("os casos de regressão são numerados 1..N na ordem do arquivo", async () => {
+  // A tabela é dividida em seções por comando, e caso novo entra na seção do
+  // comando dele, não no fim do arquivo. Sem esta guarda a numeração vira ordem
+  // de escrita, e o leitor perde a referência estável de "o caso 12".
+  const numeros = (await ler("examples/regressao-da-gramatica.md"))
+    .split("\n")
+    .filter((l) => /^\| *\d+ *\|/.test(l))
+    .map((l) => Number(l.match(/^\| *(\d+)/)[1]));
+
+  assert.ok(numeros.length > 0, "a tabela de regressão não tem casos numerados");
+  assert.deepEqual(
+    numeros,
+    numeros.map((_, i) => i + 1),
+    "numeração fora de ordem ou com buraco na tabela de regressão",
+  );
+});
+
+test("a ordem das seções do README leva à instalação, não parte dela", async () => {
+  // Instalar é o pedido mais caro da página. Ele vem depois da prova (o que sai
+  // disso, o que ele gera) e depois da pergunta que decide (isto serve para o
+  // meu projeto?) — nunca antes. Sem esta guarda a ordem volta a ser a de
+  // escrita, que foi como ela nasceu nos dois kits.
+  let dentro = false;
+  const secoes = [];
+  for (const l of README.split("\n")) {
+    if (l.trimStart().startsWith("```")) dentro = !dentro;
+    else if (!dentro && l.startsWith("## ")) secoes.push(l.slice(3).trim());
+  }
+
+  const pos = (t) => secoes.findIndex((s) => s === t);
+  const antes = (a, b) => {
+    assert.notEqual(pos(a), -1, `o README não tem a seção "${a}"`);
+    assert.notEqual(pos(b), -1, `o README não tem a seção "${b}"`);
+    assert.ok(pos(a) < pos(b), `"${a}" precisa vir antes de "${b}" no README`);
+  };
+
+  antes("Por quê", "O ciclo");
+  antes("O ciclo", "O que sai disso");
+  antes("O que sai disso", "O que ele gera");
+  antes("O que ele gera", "Em que projetos isso funciona");
+  antes("Em que projetos isso funciona", "Instalação");
+  antes("Instalação", "Uso");
+  antes("Uso", "A gramática");
+  antes("A gramática", "Verificação");
+  antes("Verificação", "Veja funcionando");
+  antes("Veja funcionando", "Limitações conhecidas");
+  antes("Limitações conhecidas", "Personalização");
 });
 
 test("toda feature de CLI documentada existe e tem teste", async () => {

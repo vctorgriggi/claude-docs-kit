@@ -267,6 +267,40 @@ export const REGRAS = [
     ruim: "- [ ] **Formato do relatório** — afeta T9.9.",
   },
   {
+    id: "D1",
+    regra: "§1",
+    alvo: "DOMAIN.md",
+    severidade: "violacao",
+    titulo: "invariantes numerados e verificáveis",
+    porque:
+      "O invariante existe para ser citado de fora (por um critério, por uma tarefa) e para virar teste. Sem id ele não é referenciável; sem forma verificável ele é um desejo.",
+    ok: "## Invariantes\n\n1. **I1 — pedido cancelado nunca volta a pago** — a transição não existe na máquina de estados.",
+    ruim: "## Invariantes\n\n- O fluxo de pagamento precisa ser consistente.",
+  },
+  {
+    id: "D2",
+    regra: "regra 10",
+    alvo: "SPEC.md, PLAN.md",
+    severidade: "violacao",
+    titulo: "invariante citado existe no DOMAIN",
+    porque:
+      "Critério ou tarefa que aponta um `I<n>` inexistente é rastreabilidade decorativa — o agente procura a lei do domínio e não acha.",
+    ok: "- [ ] T2.1 — bloquear a transição · módulo: pedidos (garante I1)",
+    ruim: "- [ ] T2.1 — bloquear a transição · módulo: pedidos (garante I9)",
+  },
+  {
+    id: "D3",
+    regra: "regra 8",
+    alvo: "DOMAIN.md",
+    severidade: "aviso",
+    promovivel: true,
+    titulo: "o glossário define o termo, não a feature",
+    porque:
+      "Glossário que descreve comportamento invade o SPEC (regra 8) e passa a divergir dele. Aqui mora o que a palavra significa e o que ela não é.",
+    ok: "- **Pedido** — intenção de compra confirmada pelo cliente. Não é carrinho: carrinho não reserva estoque.",
+    ruim: "- **Pedido** — o usuário clica em comprar, o sistema valida o estoque e envia o e-mail de confirmação.",
+  },
+  {
     id: "H1",
     regra: "regra 2",
     alvo: "todos",
@@ -351,49 +385,15 @@ export const REGRAS = [
     ruim: "SPEC e CLAUDE têm, cada um, a sua tabela de Stack com versões.",
   },
   {
-    id: "S1",
-    regra: "§5",
-    alvo: "todos",
-    severidade: "violacao",
-    titulo: "supressão declara o motivo",
-    porque:
-      "Supressão sem motivo é a porta pela qual um linter morre: alguém silencia o achado, ninguém sabe por quê, e a regra vira decoração. Com o motivo na linha, a supressão é uma decisão auditável como qualquer outra.",
-    ok: "<!-- docscheck: ignore A3 — a versão do manifest é gerada no build, não editada à mão -->",
-    ruim: "<!-- docscheck: ignore A3 -->",
-  },
-  {
-    id: "D1",
-    regra: "§1",
-    alvo: "DOMAIN.md",
-    severidade: "violacao",
-    titulo: "invariantes numerados e verificáveis",
-    porque:
-      "O invariante existe para ser citado de fora (por um critério, por uma tarefa) e para virar teste. Sem id ele não é referenciável; sem forma verificável ele é um desejo.",
-    ok: "## Invariantes\n\n1. **I1 — pedido cancelado nunca volta a pago** — a transição não existe na máquina de estados.",
-    ruim: "## Invariantes\n\n- O fluxo de pagamento precisa ser consistente.",
-  },
-  {
-    id: "D2",
+    id: "A0",
     regra: "regra 10",
-    alvo: "SPEC.md, PLAN.md",
-    severidade: "violacao",
-    titulo: "invariante citado existe no DOMAIN",
-    porque:
-      "Critério ou tarefa que aponta um `I<n>` inexistente é rastreabilidade decorativa — o agente procura a lei do domínio e não acha.",
-    ok: "- [ ] T2.1 — bloquear a transição · módulo: pedidos (garante I1)",
-    ruim: "- [ ] T2.1 — bloquear a transição · módulo: pedidos (garante I9)",
-  },
-  {
-    id: "D3",
-    regra: "regra 8",
-    alvo: "DOMAIN.md",
+    alvo: "manifest do projeto",
     severidade: "aviso",
-    promovivel: true,
-    titulo: "o glossário define o termo, não a feature",
+    titulo: "a ancoragem alcança o ecossistema do projeto",
     porque:
-      "Glossário que descreve comportamento invade o SPEC (regra 8) e passa a divergir dele. Aqui mora o que a palavra significa e o que ela não é.",
-    ok: "- **Pedido** — intenção de compra confirmada pelo cliente. Não é carrinho: carrinho não reserva estoque.",
-    ruim: "- **Pedido** — o usuário clica em comprar, o sistema valida o estoque e envia o e-mail de confirmação.",
+      "A2 e A3 comparam o documento com package.json e Makefile. Num projeto Python, Go, Rust ou Swift eles simplesmente não rodam — e cobertura que some em silêncio é pior que cobertura ausente, porque o verde passa a significar duas coisas diferentes.",
+    ok: "Projeto com package.json: `Como rodar` e a tabela de Stack são conferidos contra o manifest.",
+    ruim: "Projeto com pyproject.toml: A2 e A3 não têm o que comparar, e nada avisava isso.",
   },
   {
     id: "A1",
@@ -444,17 +444,6 @@ export const REGRAS = [
     ruim: "O CLAUDE.md cita `DB_URL`; o `.env.example` só tem `DATABASE_URL`.",
   },
   {
-    id: "A0",
-    regra: "regra 10",
-    alvo: "manifest do projeto",
-    severidade: "aviso",
-    titulo: "a ancoragem alcança o ecossistema do projeto",
-    porque:
-      "A2 e A3 comparam o documento com package.json e Makefile. Num projeto Python, Go, Rust ou Swift eles simplesmente não rodam — e cobertura que some em silêncio é pior que cobertura ausente, porque o verde passa a significar duas coisas diferentes.",
-    ok: "Projeto com package.json: `Como rodar` e a tabela de Stack são conferidos contra o manifest.",
-    ruim: "Projeto com pyproject.toml: A2 e A3 não têm o que comparar, e nada avisava isso.",
-  },
-  {
     id: "A5",
     regra: "regra 10",
     alvo: "todos",
@@ -501,6 +490,17 @@ export const REGRAS = [
       "CLAUDE.md de pacote que repete o raiz é a cópia que diverge (regra 8) e mais um arquivo lido por sessão sem nada a acrescentar.",
     ok: "O pacote declara a regra própria dele e aponta o raiz para o resto.",
     ruim: "O `<pacote>/CLAUDE.md` repete a regra de ouro e as convenções do raiz.",
+  },
+  {
+    id: "S1",
+    regra: "§5",
+    alvo: "todos",
+    severidade: "violacao",
+    titulo: "supressão declara o motivo",
+    porque:
+      "Supressão sem motivo é a porta pela qual um linter morre: alguém silencia o achado, ninguém sabe por quê, e a regra vira decoração. Com o motivo na linha, a supressão é uma decisão auditável como qualquer outra.",
+    ok: "<!-- docscheck: ignore A3 — a versão do manifest é gerada no build, não editada à mão -->",
+    ruim: "<!-- docscheck: ignore A3 -->",
   },
   {
     id: "V1",
@@ -1726,7 +1726,9 @@ async function main() {
       console.log(`${" ".repeat(larg)}    ${a.arquivo}:${a.linha} [${a.id}] ${a.msg}`);
     }
     if (l.achados.length > 3) {
-      console.log(`${" ".repeat(larg)}    … mais ${l.achados.length - 3}; rode no diretório para ver todos`);
+      // "achado(s)", não "violação(ões)": a lista mistura as duas, e repetir o
+      // substantivo do cabeçalho faria o leitor somar dois universos.
+      console.log(`${" ".repeat(larg)}    … mais ${l.achados.length - 3} achado(s); rode no diretório para ver todos`);
     }
   }
   console.log(

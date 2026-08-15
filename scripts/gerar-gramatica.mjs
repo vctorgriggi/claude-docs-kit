@@ -8,6 +8,8 @@
 // Exit: 0 em dia (ou reescrito); 1 fora de dia com --check; 2 erro de uso.
 
 import { readFile, writeFile } from "node:fs/promises";
+import { realpathSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { REGRAS } from "../bin/docscheck.mjs";
 
 const INICIO =
@@ -24,7 +26,10 @@ const DESTINOS = [
   { url: new URL("../README.md", import.meta.url), formato: "familias" },
 ];
 
-const FAMILIAS = {
+// O mapa dá o **nome** de cada família; a **ordem** sai do catálogo, nunca
+// daqui. Duas listas de ordem divergem — e divergiram: a tabela do README saía
+// nesta ordem e a da gramática na do catálogo, com as mesmas 39 regras.
+const NOMES = {
   E: "Estrutura comum",
   F: "Fronteira presente/futuro",
   C: "Contrato (CLAUDE.md)",
@@ -37,12 +42,17 @@ const FAMILIAS = {
   V: "Volume",
 };
 
+// Ordem de primeira aparição no catálogo. A regra da casa é que as famílias são
+// contíguas ali — o teste de coerência cobra isso.
+export const familias = () => [...new Set(REGRAS.map((r) => r.id[0]))];
+
 export function tabela(formato = "completa") {
   if (formato === "familias") {
     const linhas = ["| família | regras | o que cobre |", "| ------- | ------ | ----------- |"];
-    for (const [prefixo, nome] of Object.entries(FAMILIAS)) {
+    for (const prefixo of familias()) {
+      const nome = NOMES[prefixo];
+      if (!nome) throw new Error(`família "${prefixo}" está no catálogo e não tem nome`);
       const doGrupo = REGRAS.filter((r) => r.id.startsWith(prefixo));
-      if (!doGrupo.length) continue;
       const ids = doGrupo.map((r) => `\`${r.id}\``).join(" ");
       const brandas = doGrupo.every((r) => r.severidade === "aviso");
       linhas.push(
@@ -104,7 +114,20 @@ async function main() {
   }
 }
 
-if (process.argv[1] && import.meta.url.endsWith(process.argv[1].split("/").pop())) {
+// Comparação por realpath, não por nome de arquivo: em macOS `/tmp` e `/var`
+// são symlinks, e comparar só o basename faz o script sair 0 sem gerar nada.
+const ehEntryPoint = () => {
+  try {
+    return (
+      process.argv[1] &&
+      realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url))
+    );
+  } catch {
+    return false;
+  }
+};
+
+if (ehEntryPoint()) {
   await main().catch((e) => {
     console.error(`erro: ${e.message}`);
     process.exit(2);

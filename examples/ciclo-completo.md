@@ -120,9 +120,10 @@ node .github/docscheck.mjs --strict .
 ```
 $ docscheck ~/Workspaces/*
 linkcheck  ok
-pedidos    ok
 notas-api  2 violação(ões)
              CLAUDE.md:1 [E1] sem blockquote de papel logo abaixo do título (§1)
+             CLAUDE.md:1 [C1] sem seção "Regra de ouro" (regra 3)
+pedidos    ok
 
 resumo: 1 de 3 doc-set(s) com violação
 ```

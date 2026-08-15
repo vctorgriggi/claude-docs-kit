@@ -48,6 +48,75 @@ repositório, o estado do doc-set entra no contexto, e um aviso aparece na tela
 se houver violação ou se o marcador estiver atrasado. É opcional, e vem
 desligado.
 
+## O que sai disso
+
+Um `CLAUDE.md` gerado abre assim — o contrato que toda sessão lê antes de
+tocar no código:
+
+```markdown
+## Regra de ouro
+
+**Zero dependências de runtime: toda funcionalidade usa apenas a stdlib do
+Node.** Tudo abaixo é desdobramento disso. Uma feature que "precisa" de pacote
+externo ou é reescrita sobre a stdlib ou não entra.
+
+## Nunca fazer
+
+- Nunca replicar condição de transição no chamador — é a divergência que a
+  biblioteca existe para eliminar.
+- Nunca usar float para dinheiro — 0.1 + 0.2 não fecha caixa (I3).
+```
+
+E o verificador diz, com exit code, quando o documento deixou de descrever o
+código:
+
+```
+$ docscheck .
+CLAUDE.md:12 [A1] a árvore da Estrutura cita "src/parser.js", que não existe
+CLAUDE.md:21 [A3] a tabela Stack declara Node 18; o package.json exige >=22
+PLAN.md:61  [A6] 41 commits desde a última rodada (a1b2c3d)
+resumo: 3 violação(ões) da gramática        # exit 1
+```
+
+Os doc-sets completos estão em [`examples/fixtures/`](examples/fixtures/) —
+[`linkcheck`](examples/fixtures/linkcheck/) para o caso simples,
+[`pedidos`](examples/fixtures/pedidos/) para domínio com invariantes. As
+sessões que os produziram estão em [`examples/`](examples/).
+
+## O que ele gera
+
+| Arquivo | Papel | Quando |
+| --- | --- | --- |
+| `SPEC.md` | O quê e por quê; fronteira entre presente e planejado | Sempre |
+| `CLAUDE.md` | Contrato de como o código é escrito | Sempre |
+| `PLAN.md` | Execução fatiada em fases; tarefas com módulo e aceitação | Quando há trabalho à frente |
+| `DOMAIN.md` | Glossário e invariantes de negócio, com id `I<n>` | Domínio com vocabulário próprio, ou leis que o código não declara |
+| `ROADMAP.md` | Direções sem promessa | Repositório público ou ambições além do SPEC |
+| `docs/<tema>.md` | Conhecimento caro e durável | Quando uma área do CLAUDE.md passa de ~meia página |
+| `docs/README.md` | Mapa da documentação | docs/ passa de cerca de 3 arquivos |
+| `<pacote>/CLAUDE.md` | Recipe local de pacote | Monorepos |
+| `AGENTS.md` | Espelho curto para outros agentes | Quando coexistem outros agentes |
+
+O kit não gera placeholders; um arquivo só é criado quando há razão para ele
+existir.
+
+## Em que projetos isso funciona
+
+**A gramática e os comandos são agnósticos de linguagem** — o `/docs:fundar`
+varre `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `Gemfile` e
+`Package.swift`.
+
+**A ancoragem doc↔código não é.** `A2` (comandos de "Como rodar") e `A3`
+(versões da Stack) só comparam contra `package.json` e `Makefile`; nos demais
+ecossistemas o `A0` avisa que essas duas não rodaram, em vez de deixar o verde
+significar duas coisas diferentes. As outras seis checagens da família — árvore
+no disco, env, ponteiro morto, frescor do marcador, satélites, monorepo —
+funcionam em qualquer projeto.
+
+Onde ele **não** compensa: script de 50 linhas, protótipo descartável, ou
+repositório em que nenhum agente vai trabalhar. A gramática cobra disciplina
+que só se paga quando alguém — humano ou modelo — volta ao código depois.
+
 ## Instalação
 
 ```bash
@@ -89,75 +158,6 @@ partes — observado, inferido e não determinável. Intenção nunca é inventa
 passa pela pergunta "isto muda como um agente age daqui em diante?". Muda, vira
 convenção, proibição, gap ou exclusão de escopo. Não muda, não entra — o git
 guarda a íntegra e o marcador de rodada dá o eixo do tempo.
-
-## O que sai disso
-
-Um `CLAUDE.md` gerado abre assim — o contrato que toda sessão lê antes de
-tocar no código:
-
-```markdown
-## Regra de ouro
-
-**Zero dependências de runtime: toda funcionalidade usa apenas a stdlib do
-Node.** Tudo abaixo é desdobramento disso. Uma feature que "precisa" de pacote
-externo ou é reescrita sobre a stdlib ou não entra.
-
-## Nunca fazer
-
-- Nunca replicar condição de transição no chamador — é a divergência que a
-  biblioteca existe para eliminar.
-- Nunca usar float para dinheiro — 0.1 + 0.2 não fecha caixa (I3).
-```
-
-E o verificador diz, com exit code, quando o documento deixou de descrever o
-código:
-
-```
-$ docscheck .
-CLAUDE.md:12 [A1] a árvore da Estrutura cita "src/parser.js", que não existe
-CLAUDE.md:21 [A3] a tabela Stack declara Node 18; o package.json exige >=22
-PLAN.md:61  [A6] 41 commits desde a última rodada (a1b2c3d)
-resumo: 3 violação(ões) da gramática        # exit 1
-```
-
-Os doc-sets completos estão em [`examples/fixtures/`](examples/fixtures/) —
-[`linkcheck`](examples/fixtures/linkcheck/) para o caso simples,
-[`pedidos`](examples/fixtures/pedidos/) para domínio com invariantes. As
-sessões que os produziram estão em [`examples/`](examples/).
-
-## Em que projetos isso funciona
-
-**A gramática e os comandos são agnósticos de linguagem** — o `/docs:fundar`
-varre `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `Gemfile` e
-`Package.swift`.
-
-**A ancoragem doc↔código não é.** `A2` (comandos de "Como rodar") e `A3`
-(versões da Stack) só comparam contra `package.json` e `Makefile`; nos demais
-ecossistemas o `A0` avisa que essas duas não rodaram, em vez de deixar o verde
-significar duas coisas diferentes. As outras seis checagens da família — árvore
-no disco, env, ponteiro morto, frescor do marcador, satélites, monorepo —
-funcionam em qualquer projeto.
-
-Onde ele **não** compensa: script de 50 linhas, protótipo descartável, ou
-repositório em que nenhum agente vai trabalhar. A gramática cobra disciplina
-que só se paga quando alguém — humano ou modelo — volta ao código depois.
-
-## O que ele gera
-
-| Arquivo | Papel | Quando |
-| --- | --- | --- |
-| `SPEC.md` | O quê e por quê; fronteira entre presente e planejado | Sempre |
-| `CLAUDE.md` | Contrato de como o código é escrito | Sempre |
-| `PLAN.md` | Execução fatiada em fases; tarefas com módulo e aceitação | Quando há trabalho à frente |
-| `DOMAIN.md` | Glossário e invariantes de negócio, com id `I<n>` | Domínio com vocabulário próprio, ou leis que o código não declara |
-| `ROADMAP.md` | Direções sem promessa | Repositório público ou ambições além do SPEC |
-| `docs/<tema>.md` | Conhecimento caro e durável | Quando uma área do CLAUDE.md passa de ~meia página |
-| `docs/README.md` | Mapa da documentação | docs/ passa de cerca de 3 arquivos |
-| `<pacote>/CLAUDE.md` | Recipe local de pacote | Monorepos |
-| `AGENTS.md` | Espelho curto para outros agentes | Quando coexistem outros agentes |
-
-O kit não gera placeholders; um arquivo só é criado quando há razão para ele
-existir.
 
 ## A gramática
 
@@ -219,7 +219,7 @@ node ~/.claude/bin/docscheck.mjs --explain H2 # o porquê e os exemplos de uma r
 | **Domínio** | `D1` `D2` `D3` | invariantes numerados e verificáveis; … |
 | **Presente permanente** *(aviso)* | `H1` `H2` `H3` `H4` `H5` | sem data nem referência a rodada no corpo; … |
 | **Jurisdição** *(aviso)* | `J1` `J2` | a mesma decisão não aparece em dois arquivos; … |
-| **Ancoragem doc↔código** *(aviso)* | `A1` `A2` `A3` `A4` `A0` `A5` `A6` `A7` `A8` | as pastas da árvore Estrutura existem no disco; … |
+| **Ancoragem doc↔código** *(aviso)* | `A0` `A1` `A2` `A3` `A4` `A5` `A6` `A7` `A8` | a ancoragem alcança o ecossistema do projeto; … |
 | **Supressão** | `S1` | supressão declara o motivo |
 | **Volume** *(aviso)* | `V1` | volume do CLAUDE.md acima de 200 linhas |
 
@@ -244,10 +244,10 @@ Um diretório é "verifique isto" — a ausência de doc-set é erro de uso. Vá
 ```
 $ docscheck ~/Workspaces/*
 linkcheck  ok
-pedidos    ok — 1 aviso(s)
 notas-api  2 violação(ões)
              CLAUDE.md:1 [E1] sem blockquote de papel logo abaixo do título (§1)
              CLAUDE.md:1 [C1] sem seção "Regra de ouro" (regra 3)
+pedidos    ok
 
 resumo: 1 de 3 doc-set(s) com violação
 ```

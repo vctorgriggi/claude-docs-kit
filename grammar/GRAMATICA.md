@@ -188,6 +188,9 @@ entram como aviso e só viram violação com `--strict` ou com
 | `T3` | regra 10 | PLAN.md | violação | o módulo da tarefa existe no CLAUDE.md |
 | `T4` | regra 10 | PLAN.md | violação | o risco referencia uma constraint existente do SPEC |
 | `T5` | regra 10 | todos | violação | decisão pendente aponta tarefa existente |
+| `D1` | §1 | DOMAIN.md | violação | invariantes numerados e verificáveis |
+| `D2` | regra 10 | SPEC.md, PLAN.md | violação | invariante citado existe no DOMAIN |
+| `D3` | regra 8 | DOMAIN.md | aviso | o glossário define o termo, não a feature |
 | `H1` | regra 2 | todos | aviso | sem data nem referência a rodada no corpo |
 | `H2` | regra 7 | todos | aviso | decisão resolvida não permanece no documento |
 | `H3` | regra 2 | todos | aviso | sem vocabulário narrativo |
@@ -195,19 +198,16 @@ entram como aviso e só viram violação com `--strict` ou com
 | `H5` | regra 2 | SPEC.md, PLAN.md | aviso | volume de SPEC/PLAN acima de 300 linhas |
 | `J1` | regra 8 | todos | aviso | a mesma decisão não aparece em dois arquivos |
 | `J2` | regra 8 | todos | aviso | fato de dono único não é repetido fora do dono |
-| `S1` | §5 | todos | violação | supressão declara o motivo |
-| `D1` | §1 | DOMAIN.md | violação | invariantes numerados e verificáveis |
-| `D2` | regra 10 | SPEC.md, PLAN.md | violação | invariante citado existe no DOMAIN |
-| `D3` | regra 8 | DOMAIN.md | aviso | o glossário define o termo, não a feature |
+| `A0` | regra 10 | manifest do projeto | aviso | a ancoragem alcança o ecossistema do projeto |
 | `A1` | regra 10 | CLAUDE.md | aviso | as pastas da árvore Estrutura existem no disco |
 | `A2` | regra 10 | CLAUDE.md (projeto com package.json ou Makefile) | aviso | "Como rodar" bate com os scripts do manifest |
 | `A3` | regra 10 | CLAUDE.md (projeto com package.json) | aviso | as versões da tabela Stack batem com o manifest |
 | `A4` | regra 10 | CLAUDE.md | aviso | os nomes de env citados existem no .env.example |
-| `A0` | regra 10 | manifest do projeto | aviso | a ancoragem alcança o ecossistema do projeto |
 | `A5` | regra 10 | todos | aviso | os caminhos de arquivo citados nos documentos existem |
 | `A6` | §4 | PLAN.md, CLAUDE.md | aviso | o marcador de rodada não está atrasado |
 | `A7` | regra 11 | docs/ | aviso | satélites de docs/ têm ponteiro e índice, sem órfãos |
 | `A8` | §1 | <pacote>/CLAUDE.md | aviso | o CLAUDE.md de pacote tem recipe própria |
+| `S1` | §5 | todos | violação | supressão declara o motivo |
 | `V1` | regra 11 | CLAUDE.md | aviso | volume do CLAUDE.md acima de 200 linhas |
 
 <!-- REGRAS:fim -->
