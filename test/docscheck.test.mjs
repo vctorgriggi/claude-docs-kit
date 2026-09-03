@@ -923,6 +923,49 @@ test("A5: caminho citado que não existe acende; caminho válido e placeholder n
   assert.match(r.avisos[0].msg, /docs\/borda-http\.md/);
 });
 
+test("A5: um atalho que é sufixo de um caminho do repositório resolve; um alias e uma variável não são caminhos", async () => {
+  const dir = await copiaDoFixture({
+    "CLAUDE.md": (md) =>
+      md.replace(
+        "## Gaps conhecidos",
+        [
+          "A regra vive em `nested/util.js`; o alias é `@repo/utils/lib/x.ts` e o",
+          "turbo lê `$TURBO_ROOT$/agents.md`; o que não existe é `nested/other.js`.",
+          "",
+          "## Gaps conhecidos",
+        ].join("\n"),
+      ),
+  });
+  await mkdir(path.join(dir, "src", "deep", "nested"), { recursive: true });
+  await writeFile(path.join(dir, "src", "deep", "nested", "util.js"), "export {};\n");
+  const r = await verificar(dir);
+  // só o sufixo que não casa com arquivo nenhum; o atalho válido, o alias e a
+  // variável ficam de fora
+  assert.deepEqual(avisosDe(r, "A5"), ["A5"]);
+  assert.match(r.avisos[0].msg, /nested\/other\.js/);
+});
+
+test("A5: num repositório git o índice é o que o git enxerga — um arquivo ignorado não faz um atalho resolver", async () => {
+  const dir = await copiaDoFixture({
+    "CLAUDE.md": (md) =>
+      md.replace(
+        "## Gaps conhecidos",
+        "Rastreado em `nested/util.js`; ignorado em `deep/out.js`; pasta em `nested/`.\n\n## Gaps conhecidos",
+      ),
+  });
+  await mkdir(path.join(dir, "src", "deep", "nested"), { recursive: true });
+  await writeFile(path.join(dir, "src", "deep", "nested", "util.js"), "export {};\n");
+  await mkdir(path.join(dir, "build", "deep"), { recursive: true });
+  await writeFile(path.join(dir, "build", "deep", "out.js"), "// gerado\n");
+  await writeFile(path.join(dir, ".gitignore"), "build/\n");
+  execFileSync("git", ["init", "-q"], { cwd: dir });
+  const r = await verificar(dir);
+  // `nested/util.js` é novo e não ignorado (o git o enxerga); `build/deep/out.js`
+  // está no disco mas é ignorado, então `deep/out.js` não resolve por sufixo
+  assert.deepEqual(avisosDe(r, "A5"), ["A5"]);
+  assert.match(r.avisos[0].msg, /deep\/out\.js/);
+});
+
 test("A4: nome de env citado e ausente do .env.example acende; só nomes são lidos", async () => {
   const dir = await copiaDoFixture({
     "CLAUDE.md": (md) =>
