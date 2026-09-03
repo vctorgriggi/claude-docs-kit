@@ -449,10 +449,11 @@ export const REGRAS = [
     alvo: "todos",
     severidade: "aviso",
     promovivel: true,
-    titulo: "os caminhos de arquivo citados nos documentos existem",
+    titulo:
+      "os caminhos de arquivo citados nos documentos existem, inteiros ou como sufixo de um caminho do repositório",
     porque:
-      "Ponteiro morto é pior que ausência: o agente confia que o detalhe está em outro lugar e não o procura.",
-    ok: "`ver docs/borda-http.md` e o arquivo existe.",
+      "Ponteiro morto é pior que ausência: o agente confia que o detalhe está em outro lugar e não o procura. Um atalho relativo ao pacote (`queries/sessions.ts` por `packages/database/prisma/queries/sessions.ts`) é citação da casa, não ponteiro morto — resolve se for sufixo de um caminho rastreado; um token que começa com `@` ou `$` é alias, pacote ou variável, e não é caminho.",
+    ok: "`ver docs/borda-http.md` e o arquivo existe; `ver queries/sessions.ts` e `packages/database/prisma/queries/sessions.ts` é rastreado.",
     ruim: "`ver docs/borda-http.md` depois de o arquivo ter sido renomeado.",
   },
   {
@@ -632,10 +633,64 @@ const MAX_COMMITS_DESDE_RODADA = 30;
 // termina em barra, e nada de placeholder, glob, URL ou caminho absoluto.
 function caminhoConcreto(p) {
   if (!p || p.length > 120) return false;
-  if (/^(~|\/|[a-z]+:)/i.test(p)) return false;
+  // `@` abre um alias ou um nome de pacote (`@repo/utils/lib/x.ts`), `$` uma
+  // variável (`$TURBO_ROOT$/agents.md`): parecem caminhos e não são.
+  if (/^(~|\/|[a-z]+:|[@$])/i.test(p)) return false;
   if (/[<>*?{}\s|]/.test(p)) return false;
   if (!p.includes("/")) return false;
   return /\.[a-z0-9]{1,6}$/i.test(p) || p.endsWith("/");
+}
+
+// Os caminhos do repositório-alvo, para o A5 resolver uma citação por sufixo.
+// Num repositório git é o que o git enxerga — rastreados e novos, nunca os
+// ignorados — porque "existe no repositório" é sobre o que se compartilha, e
+// um build local não pode fazer um ponteiro parecer vivo numa máquina e morto
+// noutra. Fora do git, uma caminhada bounded que pula o que um build deixa.
+const PASTAS_FORA_DO_INDICE = new Set([
+  "node_modules", ".git", ".next", "dist", "build", "coverage", ".turbo",
+]);
+async function caminhosDoRepositorio(dir) {
+  if (existsSync(path.join(dir, ".git"))) {
+    try {
+      const saida = execFileSync(
+        "git",
+        ["ls-files", "--cached", "--others", "--exclude-standard", "-z"],
+        { cwd: dir, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 },
+      );
+      return saida.split("\0").filter(Boolean);
+    } catch {
+      // git ausente ou quebrado: a caminhada abaixo responde igual.
+    }
+  }
+  const lista = [];
+  async function andar(rel) {
+    let entradas;
+    try {
+      entradas = await readdir(path.join(dir, rel), { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const e of entradas) {
+      if (PASTAS_FORA_DO_INDICE.has(e.name)) continue;
+      const filho = rel ? `${rel}/${e.name}` : e.name;
+      if (e.isDirectory()) await andar(filho);
+      else lista.push(filho);
+    }
+  }
+  await andar("");
+  return lista;
+}
+
+// Um caminho citado resolve inteiro (existe no disco) ou como SUFIXO de um
+// caminho do repositório: `queries/sessions.ts` por
+// `packages/database/prisma/queries/sessions.ts`. Um diretório citado com a
+// barra final resolve se algum caminho passa por ele.
+function caminhoResolve(dir, p, indice) {
+  if (existsSync(path.join(dir, p))) return true;
+  if (p.endsWith("/")) {
+    return indice.some((f) => f.startsWith(p) || f.includes(`/${p}`));
+  }
+  return indice.some((f) => f === p || f.endsWith(`/${p}`));
 }
 
 // Manifests do projeto-alvo, quando existirem. Nada aqui é obrigatório: um
@@ -824,6 +879,7 @@ async function ancoragem(dir, docs, sombras, achar) {
   }
 
   // --- A5: os caminhos citados nos documentos existem ---
+  const indiceDoRepositorio = await caminhosDoRepositorio(dir);
   for (const [nome, md] of Object.entries(sombras)) {
     const vistos = new Set();
     const candidatos = [
@@ -834,7 +890,7 @@ async function ancoragem(dir, docs, sombras, achar) {
       const p = m[1].replace(/#.*$/, "").trim();
       if (!caminhoConcreto(p) || vistos.has(p)) continue;
       vistos.add(p);
-      if (!existsSync(path.join(dir, p))) {
+      if (!caminhoResolve(dir, p, indiceDoRepositorio)) {
         const antes = md.slice(0, m.index).split("\n").length;
         achar(nome, antes, "A5", `o caminho "${p}" não existe no repositório`);
       }

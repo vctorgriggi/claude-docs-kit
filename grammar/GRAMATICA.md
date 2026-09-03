@@ -203,7 +203,7 @@ entram como aviso e só viram violação com `--strict` ou com
 | `A2` | regra 10 | CLAUDE.md (projeto com package.json ou Makefile) | aviso | "Como rodar" bate com os scripts do manifest |
 | `A3` | regra 10 | CLAUDE.md (projeto com package.json) | aviso | as versões da tabela Stack batem com o manifest |
 | `A4` | regra 10 | CLAUDE.md | aviso | os nomes de env citados existem no .env.example |
-| `A5` | regra 10 | todos | aviso | os caminhos de arquivo citados nos documentos existem |
+| `A5` | regra 10 | todos | aviso | os caminhos de arquivo citados nos documentos existem, inteiros ou como sufixo de um caminho do repositório |
 | `A6` | §4 | PLAN.md, CLAUDE.md | aviso | o marcador de rodada não está atrasado |
 | `A7` | regra 11 | docs/ | aviso | satélites de docs/ têm ponteiro e índice, sem órfãos |
 | `A8` | §1 | <pacote>/CLAUDE.md | aviso | o CLAUDE.md de pacote tem recipe própria |
