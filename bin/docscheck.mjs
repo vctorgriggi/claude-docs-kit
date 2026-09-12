@@ -41,7 +41,7 @@ const ARQUIVOS = [
 // Versão da gramática que este verificador implementa. Deve acompanhar a
 // declaração "Versão da gramática" em grammar/GRAMATICA.md; o teste do kit
 // acusa divergência.
-export const GRAMATICA = "v7";
+export const GRAMATICA = "v8";
 
 // Limite brando de volume do AGENTS.md (regra 11): acima disso vira aviso —
 // nunca violação; o critério de corte segue sendo o teste de deleção.
@@ -728,6 +728,40 @@ async function lerManifests(dir) {
   return out;
 }
 
+// A2 inspeciona invocações simples, sem executar shell ou scripts do projeto.
+// Fontes e limites de cobertura estão no README, seção Verificação.
+const COMANDOS_NATIVOS = {
+  npm: new Set("install i ci exec init create uninstall remove update audit fund outdated list ls view info pack publish version help config cache dedupe prune rebuild link unlink whoami login logout ping doctor explain root prefix search dist-tag access token owner org team profile pkg query sbom completion diff explore bugs docs repo deprecate unpublish hook set get restart stop".split(" ")),
+  pnpm: new Set("install i add remove rm uninstall update up exec dlx create init audit outdated list ls why pack publish help config store fetch deploy import link unlink prune rebuild setup env patch patch-commit patch-remove approve-builds ignored-builds dedupe licenses server self-update".split(" ")),
+  yarn: new Set("install add remove up upgrade exec dlx create init info why pack npm help config cache set plugin policies workspaces dedupe patch patch-commit rebuild constraints version versions link unlink node bin stage import audit outdated global autoclean generate-lock-entry check licenses list login logout owner publish team tag upgrade-interactive".split(" ")),
+  bun: new Set("test install i add remove rm update outdated audit pm x exec build init create upgrade completions publish link unlink patch patch-commit info".split(" ")),
+};
+
+function problemaDeScript(cmd, dir, scripts) {
+  const texto = cmd.replace(/\s+#.*$/, "").trim().replace(/^\$\s+/, "");
+  if (!/\b(?:npm|pnpm|yarn|bun)\s/.test(texto)) return null;
+  const simples = texto.match(/^(npm|pnpm|yarn|bun)\s+(\w[\w:-]*)(?:\s+(.*))?$/);
+  const parcial = "A2 não verificou este comando: use uma invocação simples no pacote correspondente ou confira manualmente seletores, opções e shell composto";
+  if (!simples || /[;&|`$\\<>]/.test(texto)) return parcial;
+  const [, gerenciador, comando, resto = ""] = simples;
+  const explicito = comando === "run" || (["npm", "pnpm"].includes(gerenciador) && comando === "run-script");
+  if (!explicito && COMANDOS_NATIVOS[gerenciador].has(comando)) return null;
+  if (/\s(?:--(?:workspace|workspaces|prefix|filter|dir|cwd)\b|-[wCr]\b)/.test(` ${resto}`)) return parcial;
+  if (explicito && !resto) return null; // lista scripts
+  let script = explicito ? resto.split(/\s+/)[0] : comando;
+  if (script.startsWith("-") || !/^[\w:-]+$/.test(script)) return parcial;
+  if (!explicito && ["npm", "pnpm"].includes(gerenciador) && ["t", "tst"].includes(script)) script = "test";
+  if (typeof scripts[script] === "string" && scripts[script].trim()) return null;
+  // npm e pnpm permitem start sem script quando server.js existe.
+  if (script === "start" && ["npm", "pnpm"].includes(gerenciador) && existsSync(path.join(dir, "server.js"))) return null;
+  // Yarn e Bun também resolvem executáveis. Sem script, declare o limite
+  // da checagem em vez de afirmar que o comando não existe.
+  if (["yarn", "bun"].includes(gerenciador)) {
+    return `"Como rodar" usa "${script}", ausente de scripts no package.json; A2 não resolve executáveis nem scripts de outros workspaces de ${gerenciador}`;
+  }
+  return `"Como rodar" usa o script "${script}", ausente ou vazio em scripts no package.json`;
+}
+
 // A1..A8: o que os documentos afirmam sobre o repositório bate com o
 // repositório. Tudo aqui é aviso por padrão (--strict promove): a calibração
 // depende do projeto, e um falso positivo não pode quebrar o build de ninguém
@@ -807,18 +841,9 @@ async function ancoragem(dir, docs, sombras, achar) {
       const bruto = corpoOriginal(docs["AGENTS.md"], rodar, secs);
       for (const bloco of bruto.matchAll(/```[^\n]*\n([\s\S]*?)```/g)) {
         for (const cmd of bloco[1].split("\n")) {
-          const npm = cmd.match(/\b(?:npm|pnpm|yarn|bun)\s+(?:run\s+)?([\w:-]+)/);
-          if (npm && manifest.scripts) {
-            const embutidos = ["install", "ci", "exec", "init", "test", "start"];
-            const s = npm[1];
-            if (!(s in manifest.scripts) && !embutidos.includes(s)) {
-              achar(
-                "AGENTS.md",
-                rodar.linha,
-                "A2",
-                `"Como rodar" usa o script "${s}", ausente de scripts no package.json`,
-              );
-            }
+          if (manifest.scripts) {
+            const problema = problemaDeScript(cmd, dir, manifest.scripts);
+            if (problema) achar("AGENTS.md", rodar.linha, "A2", problema);
           }
           const make = cmd.match(/^\s*make\s+([\w.-]+)/);
           if (make && manifest.alvosMake && !manifest.alvosMake.has(make[1])) {
@@ -935,6 +960,12 @@ async function ancoragem(dir, docs, sombras, achar) {
           );
         }
       } catch {
+        const parcial = execFileSync("git", ["rev-parse", "--is-shallow-repository"], {
+          cwd: dir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"],
+        }).trim() === "true";
+        if (parcial) {
+          throw new Error(`histórico Git parcial em ${dir}: não foi possível verificar o marcador ${ref}; disponibilize o histórico (fetch-depth: 0 no actions/checkout) e rode novamente`);
+        }
         achar(
           nome,
           nLinha,
@@ -1137,7 +1168,7 @@ export async function verificar(dir, opcoes = {}) {
   // é erro duro — silenciá-lo faria o strict "desligar sozinho", que é a falha
   // que ninguém percebe.
   let strict = opcoes.strict === true;
-  if (opcoes.strict === undefined) {
+  {
     const cfg = path.join(dir, ".docscheck.json");
     if (existsSync(cfg)) {
       let parsed;
@@ -1146,7 +1177,15 @@ export async function verificar(dir, opcoes = {}) {
       } catch (e) {
         throw new Error(`.docscheck.json inválido em ${dir}: ${e.message}`);
       }
-      strict = parsed.strict === true;
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+        throw new Error(`.docscheck.json inválido em ${dir}: esperado um objeto`);
+      }
+      const desconhecidas = Object.keys(parsed).filter((chave) => chave !== "strict");
+      if (desconhecidas.length) throw new Error(`.docscheck.json inválido em ${dir}: opções desconhecidas: ${desconhecidas.join(", ")}`);
+      if (Object.hasOwn(parsed, "strict") && typeof parsed.strict !== "boolean") {
+        throw new Error(`.docscheck.json inválido em ${dir}: strict deve ser booleano (true ou false, sem aspas)`);
+      }
+      if (opcoes.strict === undefined) strict = parsed.strict === true;
     }
   }
 
@@ -1814,7 +1853,7 @@ async function main() {
 
   if (json) {
     console.log(JSON.stringify({ gramatica: GRAMATICA, doc_sets: linhas }, null, 2));
-    process.exit(comViolacao || falhou ? 1 : 0);
+    process.exit(falhou ? 2 : comViolacao ? 1 : 0);
   }
 
   if (!linhas.length) {
@@ -1846,7 +1885,7 @@ async function main() {
   console.log(
     `\nresumo: ${comViolacao} de ${linhas.length} doc-set(s) com violação`,
   );
-  process.exit(comViolacao || falhou ? 1 : 0);
+  process.exit(falhou ? 2 : comViolacao ? 1 : 0);
 }
 
 // Entry-point por realpath, não por string de URL: em macOS `/tmp` e `/var`

@@ -4,19 +4,29 @@ set -euo pipefail
 
 RAIZ="$(cd "$(dirname "$0")" && pwd -P)"
 DESTINO_HOME="${HOME}"
-if [ "${1:-}" = "--home" ] && [ "$#" -eq 2 ] && [ -n "$2" ]; then
-  DESTINO_HOME="$2"
-elif [ "$#" -ne 0 ]; then
-  echo 'Uso: ./install.sh [--home <diretório>]' >&2
-  exit 2
-fi
+CHECAR=false
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --check) CHECAR=true; shift ;;
+    --home)
+      if [ "$#" -lt 2 ] || [ -z "$2" ]; then
+        echo 'Uso: ./install.sh [--check] [--home <diretório>]' >&2; exit 2
+      fi
+      DESTINO_HOME="$2"; shift 2 ;;
+    *) echo 'Uso: ./install.sh [--check] [--home <diretório>]' >&2; exit 2 ;;
+  esac
+done
 case "$DESTINO_HOME" in
   /*) ;;
   *) echo 'erro: --home deve ser um caminho absoluto' >&2; exit 2 ;;
 esac
 
 command -v node >/dev/null || { echo 'erro: Node ≥ 20 é necessário' >&2; exit 2; }
-node -e 'if (Number(process.versions.node.split(".")[0]) < 20) process.exit(2)'
+node -e 'if (Number(process.versions.node.split(".")[0]) < 20) { console.error("erro: Node ≥ 20 é necessário"); process.exit(2); }'
+
+if [ "$CHECAR" = true ]; then
+  exec node "$RAIZ/scripts/doctor.mjs" --home "$DESTINO_HOME"
+fi
 
 alvos=(
   "$DESTINO_HOME/.agents/skills/docs"

@@ -5,7 +5,7 @@
 > `docscheck` verifica. Os comandos leem este arquivo no início de cada
 > invocação — é a fonte única da gramática, e nenhum comando a parafraseia.
 
-Versão da gramática: v7. Incremente a cada mudança de convenção; a constante
+Versão da gramática: v8. Incremente a cada mudança de convenção; a constante
 `GRAMATICA` de `bin/docscheck.mjs` acompanha (o teste do kit acusa
 divergência). Regere as tabelas e valide conforme o README. A instalação
 por links usa diretamente esta fonte.
@@ -172,7 +172,9 @@ A última linha do `PLAN.md` — do `AGENTS.md`, quando não há PLAN — carreg
 `git rev-parse --short HEAD` ou, sem repositório git, a data em `AAAA-MM-DD`.
 A rodada seguinte parte dele (`git log <ref>..HEAD`) em vez de adivinhar qual
 foi o último marco. Confira também mudanças ainda não commitadas; o marcador
-delimita apenas os commits. Datas de vigência (regra 2) e de fontes externas (regra 9) têm finalidades distintas e também
+delimita apenas os commits. Se o histórico for parcial e a referência não
+estiver disponível, obtenha o histórico antes de medir o atraso; indisponibilidade
+não prova que o marcador seja inválido. Datas de vigência (regra 2) e de fontes externas (regra 9) têm finalidades distintas e também
 são permitidas; não substituem o marcador.
 
 ## §5 Invariantes mecânicos

@@ -34,6 +34,7 @@
 | Entrada | Resultado esperado |
 | --- | --- |
 | `/docs tarefa T2.1` em linkcheck | Briefing com módulo, contrato, verificação e limites; nada implementado |
+| `/docs tarefa` em pacote com regras locais diferentes da raiz | Lê os contratos da raiz até os arquivos da tarefa, cita as fontes e inclui as restrições locais no briefing; conflito sem resolução de escopo é exposto |
 | `/docs tarefa T2.2` bloqueada por timeout | Nomeia a decisão pendente e a dependência; não escolhe timeout sozinho |
 | `/docs tarefa T9.9` inexistente | Informa o id ausente e mostra alternativas reais |
 | `/docs decidir resolver Timeout padrão dos links externos` | Propõe a troca da pendência pelo produto da decisão, no dono correto |

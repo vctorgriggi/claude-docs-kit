@@ -25,7 +25,12 @@ Leia, nesta ordem, e recolha só o que **esta** tarefa precisa:
 
 1. **AGENTS.md** — a regra de ouro; a seção da área do módulo da tarefa; as
    convenções que se aplicam; as proibições de "Nunca fazer" que tocam este
-   trabalho; os gaps conhecidos da área.
+   trabalho; os gaps conhecidos da área. Leia também cada `AGENTS.md` entre a
+   raiz e os arquivos da tarefa, incluindo o contrato do pacote e contratos
+   mais específicos. Reúna as regras conforme o escopo de cada diretório e
+   cite os contratos consultados no briefing. Não presuma que o agente já os
+   carregou. Se houver conflito que o escopo não resolva, exponha-o antes de
+   encaminhar a implementação.
 2. **PLAN.md** — a tarefa: módulo, testes ou verificação que a definem,
    critérios de aceitação, e a fase a que pertence. Também as tarefas de que
    ela depende e o estado delas.

@@ -1286,7 +1286,7 @@ test('.docscheck.json com {"strict": true} promove como a flag; inválido é err
   // Config sem strict não promove nada — ausência de chave não é `false` implícito
   // que muda comportamento, é simplesmente o padrão.
   const dirNeutro = await docSet(doc);
-  await writeFile(path.join(dirNeutro, ".docscheck.json"), '{"outra": 1}\n');
+  await writeFile(path.join(dirNeutro, ".docscheck.json"), '{}\n');
   const neutro = await verificar(dirNeutro);
   assert.deepEqual(neutro.violacoes, []);
 

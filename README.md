@@ -34,6 +34,19 @@ para descobrir a skill. Edições neste checkout passam a valer sem copiar
 arquivos; se mover ou renomear a pasta, rode `./install.sh` novamente.
 O instalador recusa substituir diretórios ou arquivos comuns já existentes.
 
+Para diagnosticar a instalação sem alterar arquivos:
+
+```bash
+./install.sh --check
+```
+
+O diagnóstico confere Node, recursos, destino dos três links, permissão do
+executável e qual `docscheck` o `PATH` encontra. Mostra como corrigir cada
+problema; não instala nem repara automaticamente. Exit codes: 0 íntegro,
+1 com problemas, 2 erro de uso ou pré-requisito. Para um home alternativo,
+use `./install.sh --check --home /caminho/absoluto`. A descoberta nos agentes
+precisa ser confirmada em sessões novas.
+
 A instalação usa os locais e o suporte a symlinks documentados para
 [Codex](https://learn.chatgpt.com/docs/build-skills) e
 [Claude Code](https://code.claude.com/docs/en/skills). A ponte entre os contratos
@@ -139,6 +152,8 @@ doc-set; um único diretório sem doc-set é erro.
 
 As famílias H, J e A são avisos calibráveis. `--strict` ou
 `{"strict": true}` em `.docscheck.json` promove esses avisos a violações.
+A configuração aceita somente `strict` booleano; tipos incorretos e opções
+desconhecidas são erros de uso, inclusive quando `--strict` é passado no CLI.
 Uma supressão exige motivo: `<!-- docscheck: ignore A3 — motivo -->`.
 
 As regras comuns também percorrem Markdown em `docs/` e contratos locais em
@@ -147,12 +162,36 @@ A ancoragem de comandos e versões compara `package.json` e `Makefile`; A0
 informa quando encontra um ecossistema conhecido que não cobre. As demais
 checagens de ancoragem não dependem da linguagem do código.
 
+A2 distingue scripts de comandos nativos: `npm test` exige script;
+[`bun test`](https://bun.com/docs/test) usa o runner do Bun, enquanto
+`bun run test` procura um script. `start` em
+[npm](https://docs.npmjs.com/cli/using-npm/scripts/) e
+[pnpm](https://pnpm.io/cli/start) admite o fallback para `server.js`.
+A checagem não executa comandos nem comprova que um script funciona. Seletores
+de workspace, opções antes do script e shell composto geram aviso de cobertura
+parcial; executáveis resolvidos por Yarn/Bun também exigem conferência manual
+quando não há script no manifest. Comandos nativos de instalação e manutenção
+não são validados como scripts.
+
 O resultado é uma verificação estrutural e heurística. Não comprova que toda
 regra foi respeitada pela implementação; a auditoria acrescenta a leitura do
 código e o julgamento. O estado é consultado explicitamente com `docs estado`
 ou `docscheck --estado`; não há hook específico de agente.
 
 ## CI e manutenção
+
+Para conferir o marcador de rodada, disponibilize o histórico Git completo.
+Em GitHub Actions, configure o checkout:
+
+```yaml
+- uses: actions/checkout@v4
+  with:
+    fetch-depth: 0
+```
+
+Se um clone parcial não contiver o marcador, o verificador retorna erro de
+uso (exit 2), explicando a falta de histórico. Isso não é uma violação da
+documentação. Ele não busca commits automaticamente.
 
 No projeto-alvo, copie `bin/docscheck.mjs` e rode:
 
