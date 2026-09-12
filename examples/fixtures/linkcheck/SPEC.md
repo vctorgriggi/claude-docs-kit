@@ -48,7 +48,7 @@ sem I/O de processo) e `cli` (argv, relatório, exit code). Nada de
 ## Stack
 
 - **Node, ESM** — stdlib apenas; testes com `node:test`. As versões mínimas
-  vivem na tabela de Stack do CLAUDE.md.
+  vivem na tabela de Stack do AGENTS.md.
 
 ## Constraints técnicas
 

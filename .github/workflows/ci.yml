@@ -14,8 +14,8 @@ jobs:
           node-version: 20
       # Glob, não a lista: um arquivo de teste novo entra sozinho. Listar à mão
       # é o tipo de completude que depende de alguém lembrar — e o teste
-      # test/completude.test.mjs cobra justamente isso.
-      - name: suítes de teste (docscheck, mutação, coerência, completude)
+      # test/kit.test.mjs cobra justamente isso.
+      - name: suítes de teste (docscheck, mutação, kit, instalação)
         run: node --test test/*.test.mjs
       - name: as tabelas geradas (GRAMATICA §5 e README) em dia com o catálogo
         run: node scripts/gerar-gramatica.mjs --check

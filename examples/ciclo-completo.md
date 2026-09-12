@@ -2,7 +2,7 @@
 
 > O mapa, não o mergulho. As transcrições numeradas mostram **um comando cada**,
 > em profundidade; esta mostra **a sequência inteira**, incluindo as partes que
-> não são comando: o hook, o verificador no terminal, o CI. Cada passo aponta
+> não são comando: o verificador no terminal e o CI. Cada passo aponta
 > para a transcrição que o detalha.
 
 O projeto é [`fixtures/linkcheck/`](fixtures/linkcheck/), no estado em que ele
@@ -10,32 +10,28 @@ está no repositório: doc-set de pé, Fase 2 (links externos) aberta com T2.1,
 T2.2 e T2.3, e uma decisão pendente no SPEC.
 
 A fundação já aconteceu — é o [exemplo 01](01-modo-a-cli-nova.md) em projeto
-novo, ou o [02](02-modo-b-varredura.md) em repositório herdado. `/docs:fundar`
+novo, ou o [02](02-modo-b-varredura.md) em repositório herdado. `/docs fundar`
 é o único comando que não se repete.
 
 ---
 
 ## Segunda — abrir o repositório
 
-Com o [hook de `SessionStart`](../README.md#o-estado-chegar-ate-voce-em-vez-de-esperar-ser-procurado)
-ligado, você não pergunta nada. A sessão abre já sabendo:
+Use a ação `estado` na skill (`$docs estado` no Codex ou `/docs estado` no
+Claude Code), ou consulte o verificador diretamente:
 
-```
-Documentação-de-agente deste repositório (gramática v6, arquivos: SPEC.md,
-PLAN.md, CLAUDE.md). Fase 2 — Links externos (HTTP) — 3 aberta(s) (T2.1, T2.2,
-T2.3) · 1 decisão(ões) pendente(s): Timeout padrão dos links externos ·
-docscheck limpo.
+```bash
+docscheck --estado .
 ```
 
-Sem o hook, o mesmo em um comando: `docscheck --estado .`
-
-> _Nada na tela: doc-set em dia não interrompe. O aviso visível só aparece com
-> violação ou marcador atrasado._
+No fixture linkcheck, o estado mostra a Fase 2 (links externos), T2.1, T2.2 e
+T2.3 abertas, e a decisão sobre o timeout. A consulta não escreve arquivos.
+O kit não instala hooks; a mesma consulta funciona com qualquer agente.
 
 ## Segunda — pegar a primeira tarefa
 
 ```
-/docs:tarefa T2.1
+/docs tarefa T2.1
 ```
 
 Devolve o briefing: o que fazer e **o que está fora** (T2.2 é a verificação
@@ -54,11 +50,11 @@ Implementando T2.2, você precisa do timeout — e é justamente a decisão pend
 do SPEC. Em vez de escolher em silêncio:
 
 ```
-/docs:decidir resolver Timeout padrão dos links externos
+/docs decidir resolver Timeout padrão dos links externos
 ```
 
 Você responde 5s. O comando classifica: é uma **convenção de como escrever
-código aqui**, então vai para o CLAUDE.md com a justificativa na linha. A linha
+código aqui**, então vai para o AGENTS.md com a justificativa na linha. A linha
 pendente **sai** do SPEC; a seção passa a declarar "Nenhuma pendente."
 
 > Se fosse uma lei de domínio — "URL sem esquema nunca é externa" — iria para o
@@ -66,19 +62,19 @@ pendente **sai** do SPEC; a seção passa a declarar "Nenhuma pendente."
 
 ## Quarta — o resto da fase
 
-`/docs:tarefa T2.2`, implementa. `/docs:tarefa T2.3`, implementa.
+`/docs tarefa T2.2`, implementa. `/docs tarefa T2.3`, implementa.
 
-Sem lembrar o id: `/docs:tarefa` sozinho lista as tarefas abertas da fase e
+Sem lembrar o id: `/docs tarefa` sozinho lista as tarefas abertas da fase e
 pergunta qual.
 
 Apareceu uma convenção nova no caminho — o fetcher injetável virou o padrão de
-toda borda de rede? `/docs:decidir` na hora, não no fim. É barato, e no fim
+toda borda de rede? `/docs decidir` na hora, não no fim. É barato, e no fim
 ninguém lembra.
 
 ## Quinta — antes de fechar, o retrato
 
 ```
-/docs:auditar
+/docs auditar
 ```
 
 Read-only. Devolve o drift em três severidades e a remediação **proposta**, não
@@ -91,7 +87,7 @@ SPEC ainda promete como futuro algo que você acabou de implementar.
 ## Sexta — fechar o marco
 
 ```
-/docs:rodada externos
+/docs rodada externos
 ```
 
 Não é por tarefa, é por **marco**: as três tarefas da Fase 2 fecham juntas.
@@ -122,9 +118,9 @@ $ docscheck ~/Workspaces/*
 linkcheck  ok
 monorepo   ok
 notas-api  3 violação(ões)
-             CLAUDE.md:1 [E1] sem blockquote de papel logo abaixo do título (§1)
-             CLAUDE.md:1 [C1] sem seção "Regra de ouro" (regra 3)
-             CLAUDE.md:1 [C5] declare "Decisões em aberto" com pendências ou "Nenhuma pendente." (regra 6)
+             AGENTS.md:1 [E1] sem blockquote de papel logo abaixo do título (§1)
+             AGENTS.md:1 [C1] sem seção "Regra de ouro" (regra 3)
+             AGENTS.md:1 [C5] declare "Decisões em aberto" com pendências ou "Nenhuma pendente." (regra 6)
 pedidos    ok
 
 resumo: 1 de 4 doc-set(s) com violação
@@ -143,12 +139,12 @@ motivo na linha, a própria supressão vira violação.
 
 | quando | comando | escreve |
 | --- | --- | --- |
-| uma vez, no início | `/docs:fundar` | os documentos |
-| ao abrir a sessão | (hook) | nada |
-| antes de cada tarefa | `/docs:tarefa <id>` | nada |
-| ao decidir algo | `/docs:decidir` | uma linha, um arquivo |
-| quando quiser o retrato | `/docs:auditar` | nada |
-| ao fechar um marco | `/docs:rodada <nome>` | os documentos |
+| uma vez, no início | `/docs fundar` | os documentos |
+| ao retomar o projeto | `docs estado` | nada |
+| antes de cada tarefa | `/docs tarefa <id>` | nada |
+| ao decidir algo | `/docs decidir` | uma linha, um arquivo |
+| quando quiser o retrato | `/docs auditar` | nada |
+| ao fechar um marco | `/docs rodada <nome>` | os documentos |
 
 Dos seis passos, **três não escrevem nada** e um escreve uma linha. O kit gasta
 a maior parte do tempo lendo e propondo — escrever é o gate, não o padrão.

@@ -40,9 +40,9 @@ fronteiras entre eles.>
 
 - **<tecnologia>** — <papel; justificativa quando a escolha não for óbvia>.
 
-<Sem versões aqui: a tabela de Stack com versões tem dono no CLAUDE.md, que é
+<Sem versões aqui: a tabela de Stack com versões tem dono no AGENTS.md, que é
 onde ela ancora no manifest (regra 8). Este parágrafo diz qual tecnologia e
-por quê; o CLAUDE diz qual versão.>
+por quê; o AGENTS diz qual versão.>
 
 ## Constraints técnicas
 

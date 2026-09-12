@@ -5,7 +5,7 @@ import path from "node:path";
 const IGNORADOS = new Set(["node_modules", ".git"]);
 
 // minúsculas, NFD sem diacríticos, não-alfanumérico vira hífen (convenção
-// registrada no CLAUDE.md: âncoras acentuadas falhavam sem normalização)
+// registrada no AGENTS.md: âncoras acentuadas falhavam sem normalização)
 export function slug(texto) {
   return texto
     .toLowerCase()

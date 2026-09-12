@@ -1,6 +1,6 @@
 # Convenções de versionamento
 
-> Extraído do CLAUDE.md (regra 11): o procedimento cresceu além de meia página
+> Extraído do AGENTS.md (regra 11): o procedimento cresceu além de meia página
 > e passou a ter dono próprio. O ponteiro de volta está nas Convenções do
 > contrato raiz.
 

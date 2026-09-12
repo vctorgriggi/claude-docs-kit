@@ -1,4 +1,4 @@
-# Exemplo 1: /docs:fundar novo — entrevista, proposta, geração
+# Exemplo 1: /docs fundar novo — entrevista, proposta, geração
 
 Sessão do Modo A sobre diretório vazio, com a semente passada na chamada.
 Convenção do corpus: blockquotes em itálico são anotações deste documento;
@@ -6,9 +6,9 @@ todo o resto é a sessão.
 
 ---
 
-**Usuário:** `/docs:fundar novo uma CLI que valida links quebrados em arquivos markdown`
+**Usuário:** `/docs fundar novo uma CLI que valida links quebrados em arquivos markdown`
 
-**Agente:** [lê `~/.claude/docs-kit/GRAMATICA.md`; o diretório está vazio → Modo A]
+**Agente:** [lê `$DOCS_KIT/grammar/GRAMATICA.md`; o diretório está vazio → Modo A]
 
 São 4 blocos curtos de perguntas; ao fim apresento a proposta de arquivos e só
 gero após seu OK. A semente já responde parte do problema; começo pelo que
@@ -26,7 +26,7 @@ Bloco 1 — problema e usuários:
 
 Prontidão: em descoberta.
 
-> _A abertura anuncia a forma (blocos + gate) e pula o que `$ARGUMENTS` já
+> _A abertura anuncia a forma (blocos + gate) e pula o que `o contexto da solicitação` já
 > respondeu — não refaz "que dor este projeto resolve"._
 
 **Usuário:**
@@ -110,7 +110,7 @@ Prontidão: pronto para propor.
   "Planejado" (você as marcou "se der trabalho"); HTTP e relatório JSON idem.
 - **PLAN.md** — Fase 0: core puro com TDD (extração e validação); Fase 1:
   CLI. A ordem isola a lógica testável da borda.
-- **CLAUDE.md** — regra de ouro: **zero dependências de runtime**. Sem seção
+- **AGENTS.md** — regra de ouro: **zero dependências de runtime**. Sem seção
   "Nunca fazer" por ora: as restrições já estão no contrato e não há outra
   proibição específica a registrar; a gramática dispensa seção vazia. Registro uma decisão em aberto: o
   formato do relatório (texto simples vs JSON).
@@ -130,7 +130,7 @@ CI). Aprova, ou ajusta?
 
 **Usuário:** aprovado
 
-**Agente:** [gera SPEC.md, depois PLAN.md, depois CLAUDE.md. Abertura do SPEC
+**Agente:** [gera SPEC.md, depois PLAN.md, depois AGENTS.md. Abertura do SPEC
 gerado:]
 
 ```
@@ -146,11 +146,11 @@ Checagens de entrega: fronteira presente/futuro no SPEC com blockquote de
 reforço — ok; "Nunca fazer" ausente por não haver item adicional — ok; os 2
 critérios de aceitação viram teste — ok; rastreabilidade T0.x/T1.x → módulos
 check/cli, risco → constraint 1 — ok; zero placeholder — ok; teste de
-deleção: duas linhas redundantes cortadas do CLAUDE.md — reparado.
+deleção: duas linhas redundantes cortadas do AGENTS.md — reparado.
 
 Resumo: SPEC.md (o quê e por quê; âncoras, HTTP e JSON em Planejado), PLAN.md
-(Fase 0 core puro, Fase 1 CLI), CLAUDE.md (regra de ouro: zero dependências;
-decisão em aberto: formato do relatório). Rode `/docs:rodada <nome>` ao fechar
+(Fase 0 core puro, Fase 1 CLI), AGENTS.md (regra de ouro: zero dependências;
+decisão em aberto: formato do relatório). Rode `/docs rodada <nome>` ao fechar
 cada marco.
 
 > _As checagens de entrega re-aplicam os invariantes ao artefato já escrito —

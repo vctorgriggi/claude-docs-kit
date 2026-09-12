@@ -39,12 +39,12 @@ biblioteca em vez de copiar a tabela.
 
 Dois pacotes com uma fronteira publicada: `nucleo` (cálculo puro, sem I/O) e
 `cli` (argv, formatação, exit code). A fronteira é o nome do pacote, não o
-caminho — a regra de ouro do CLAUDE.md.
+caminho — a regra de ouro do AGENTS.md.
 
 ## Stack
 
 - **Node, ESM, npm workspaces** — stdlib apenas; testes com `node:test`. As
-  versões mínimas vivem na tabela de Stack do CLAUDE.md.
+  versões mínimas vivem na tabela de Stack do AGENTS.md.
 
 ## Constraints técnicas
 

@@ -1,4 +1,4 @@
-# Exemplo 2: /docs:fundar existente — varredura, relatório em três listas, gate
+# Exemplo 2: /docs fundar existente — varredura, relatório em três listas, gate
 
 Sessão do Modo B sobre [`fixtures/notas-api/`](fixtures/notas-api/), em
 contexto limpo (o fixture não tem repositório git — de propósito; ver a
@@ -7,9 +7,9 @@ sessão.
 
 ---
 
-**Usuário:** `/docs:fundar existente`
+**Usuário:** `/docs fundar existente`
 
-**Agente:** [lê `~/.claude/docs-kit/GRAMATICA.md`; depois varre: manifest,
+**Agente:** [lê `$DOCS_KIT/grammar/GRAMATICA.md`; depois varre: manifest,
 árvore, configs, documentação existente, git, amostragem de código — sem
 perguntar nada antes do relatório]
 
@@ -23,7 +23,7 @@ Relatório de varredura.
   existe na árvore — fonte contra fonte; o código executa como projeto único.
   Registro a divergência como fato e proponho decisão em aberto abaixo.
 - `.env.example`: `API_TOKEN`, `PORT` (apenas os nomes).
-- Existe um `CLAUDE.md` de 4 linhas, fora da gramática (sem papel declarado,
+- Existe um `AGENTS.md` de 4 linhas, fora da gramática (sem papel declarado,
   sem regra de ouro).
 - Sem testes e sem CI.
 - Histórico git indisponível (diretório sem repositório) — fonte pulada; vai
@@ -53,7 +53,7 @@ em admin; workspaces órfão.
 
 Prontidão: refinando — as perguntas acima decidem o relatório final.
 
-Sobre o `CLAUDE.md` existente, três rotas: (1) auditar e atualizar contra o
+Sobre o `AGENTS.md` existente, três rotas: (1) auditar e atualizar contra o
 código; (2) completar apenas os faltantes, respeitando o que existe; (3)
 migrar para a gramática da casa preservando o conteúdo (mostro o mapeamento
 antes). Qual prefere?
@@ -64,7 +64,7 @@ antes). Qual prefere?
 > com aviso — e o ledger admitindo que a regra de ouro ainda não existe._
 
 **Usuário:** admin é interno, atrás do proxy, deliberado. workspaces é resto
-de migração que não rolou, pode limpar. migra o claude.md
+de migração que não rolou, pode limpar. migra o agents.md
 
 **Agente:** "Pode limpar" eu registro, não executo — gap não se conserta
 durante a documentação: a remoção do campo `workspaces` entra como tarefa
@@ -74,9 +74,9 @@ Com a resposta sobre auth, a linha 0 do ledger fecha. Regra de ouro proposta:
 **toda rota nasce atrás da guarda de auth; a exceção deliberada só existe
 registrada em "Gaps conhecidos", com o paliativo nomeado.**
 
-Mapeamento da migração do CLAUDE.md: as 4 linhas atuais viram "Como rodar" e
+Mapeamento da migração do AGENTS.md: as 4 linhas atuais viram "Como rodar" e
 uma linha de "Estrutura"; o restante é gerado da varredura validada. Com seu
-OK, gero SPEC, PLAN e CLAUDE registrando:
+OK, gero SPEC, PLAN e AGENTS registrando:
 
 - **G1 — `/admin` sem autenticação** — deliberado: exposto só à rede interna,
   atrás do proxy; o paliativo vive na configuração do proxy.
@@ -86,7 +86,7 @@ OK, gero SPEC, PLAN e CLAUDE registrando:
 
 **Usuário:** ok
 
-**Agente:** [gera na ordem SPEC → PLAN → CLAUDE. Excerto do CLAUDE.md gerado:]
+**Agente:** [gera na ordem SPEC → PLAN → AGENTS. Excerto do AGENTS.md gerado:]
 
 ```
 ## Gaps conhecidos
@@ -103,7 +103,7 @@ ok; zero placeholder — ok.
 
 Resumo: SPEC.md descreve a API atual (o dump admin incluído — comportamento
 real); PLAN.md **abre direto na fase corrente**, com a limpeza do manifest, e
-uma linha diz o que já está de pé; CLAUDE.md migrado para a gramática com G1
+uma linha diz o que já está de pé; AGENTS.md migrado para a gramática com G1
 no inventário e a decisão de padrão de erro em aberto.
 
 > _O PLAN não ganha uma "Fase 0" com o inventário do que já existe marcado

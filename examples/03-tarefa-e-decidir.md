@@ -1,4 +1,4 @@
-# Exemplo 3: /docs:tarefa e /docs:decidir — o caminho documentação → código
+# Exemplo 3: /docs tarefa e /docs decidir — o caminho documentação → código
 
 Sessão sobre [`fixtures/pedidos/`](fixtures/pedidos/), no estado em que o
 fixture está: Fase 1 (reembolso parcial) aberta, T1.1 travada por uma decisão
@@ -10,10 +10,10 @@ implementação começa. **Nenhum dos dois escreve código.**
 
 ---
 
-**Usuário:** `/docs:tarefa T1.1`
+**Usuário:** `/docs tarefa T1.1`
 
-**Agente:** [lê `~/.claude/docs-kit/GRAMATICA.md`; localiza T1.1 no PLAN; lê
-CLAUDE.md, SPEC.md, DOMAIN.md e `src/estados.js`]
+**Agente:** [lê `$DOCS_KIT/grammar/GRAMATICA.md`; localiza T1.1 no PLAN; lê
+AGENTS.md, SPEC.md, DOMAIN.md e `src/estados.js`]
 
 **`T1.1 — invariante do reembolso no DOMAIN antes do código`** · módulo
 `estados` · fase `1 — Reembolso parcial`
@@ -52,20 +52,20 @@ CLAUDE.md, SPEC.md, DOMAIN.md e `src/estados.js`]
 
   Enquanto ela não fechar, não há como formular o invariante: ele muda de forma
   conforme o estorno em `enviado` entre ou não no domínio. Rode
-  `/docs:decidir resolver Estorno em pedido enviado` antes de implementar.
+  `/docs decidir resolver Estorno em pedido enviado` antes de implementar.
 - **Buracos** — o DOMAIN não diz se o reembolso é registrado como valor
   acumulado ou como lista de eventos. A escolha muda a formulação do invariante
-  ("a soma dos reembolsos" pressupõe a lista). Candidato a `/docs:decidir`
+  ("a soma dos reembolsos" pressupõe a lista). Candidato a `/docs decidir`
   quando a implementação chegar.
 
-> _O briefing não é o CLAUDE.md despejado: são só as convenções, proibições e
+> _O briefing não é o AGENTS.md despejado: são só as convenções, proibições e
 > invariantes que tocam esta tarefa. E ele para de propor implementação quando
 > encontra uma decisão que a bloqueia — regra 6 tem um executor agora, e é o
 > comando abaixo._
 
 ---
 
-**Usuário:** `/docs:decidir resolver Estorno em pedido enviado`
+**Usuário:** `/docs decidir resolver Estorno em pedido enviado`
 
 **Agente:** [lê a gramática; localiza a decisão]
 
@@ -118,14 +118,14 @@ Uma decisão, uma edição — não vou arrumar o resto do documento nesta viage
 
 **Agente:** [escreve]
 
-`node ~/.claude/bin/docscheck.mjs .` — limpo.
+`node "$DOCS_KIT/bin/docscheck.mjs" .` — limpo.
 
 Registrado: exclusão de escopo do estorno de pedido enviado, em SPEC §Fora do
 escopo. Saiu: a decisão em aberto correspondente; a seção passou a declarar
 "Nenhuma pendente." Nada mais foi tocado, e o marcador de rodada não foi
-atualizado — quem fecha marco é `/docs:rodada`.
+atualizado — quem fecha marco é `/docs rodada`.
 
-> _Com a decisão fechada, `/docs:tarefa T1.1` volta a devolver um briefing sem
+> _Com a decisão fechada, `/docs tarefa T1.1` volta a devolver um briefing sem
 > bloqueio: o invariante agora pode ser formulado com `enviado` permanecendo
 > terminal. O ciclo é esse — o doc-set destrava a implementação, e a
 > implementação alimenta o doc-set de volta._

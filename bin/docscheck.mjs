@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// docscheck: verifica os invariantes mecânicos da gramática do claude-docs-kit
-// no doc-set de um diretório (SPEC, PLAN, CLAUDE, DOMAIN, ROADMAP, AGENTS,
-// docs/ e CLAUDE.md de pacote) e a ancoragem dele no código. Zero dependências
+// docscheck: verifica os invariantes mecânicos da gramática do agent-docs-kit
+// no doc-set de um diretório (SPEC, PLAN, AGENTS, DOMAIN, ROADMAP,
+// docs/ e AGENTS.md de pacote) e a ancoragem dele no código. Zero dependências
 // (Node ≥ 20); instalação por cópia, como o restante do kit.
 //
 // Uso: node docscheck.mjs [diretório]
@@ -28,25 +28,24 @@ import { fileURLToPath } from "node:url";
 
 // Os documentos do doc-set que carregam a gramática. Os invariantes comuns
 // (família E, mais H1/H3/J1/A5) valem para todos; os específicos são chaveados
-// por nome. AGENTS.md costuma ser symlink para o CLAUDE.md — symlink é pulado,
-// senão todo par de decisões viraria duplicata (J1).
+// por nome. AGENTS.md é o contrato canônico; a ponte CLAUDE.md não duplica
+// o contrato nas regras comuns. Symlinks de documentos são ignorados.
 const ARQUIVOS = [
   "SPEC.md",
   "PLAN.md",
-  "CLAUDE.md",
+  "AGENTS.md",
   "DOMAIN.md",
   "ROADMAP.md",
-  "AGENTS.md",
 ];
 
 // Versão da gramática que este verificador implementa. Deve acompanhar a
 // declaração "Versão da gramática" em grammar/GRAMATICA.md; o teste do kit
 // acusa divergência.
-export const GRAMATICA = "v6";
+export const GRAMATICA = "v7";
 
-// Limite brando de volume do CLAUDE.md (regra 11): acima disso vira aviso —
+// Limite brando de volume do AGENTS.md (regra 11): acima disso vira aviso —
 // nunca violação; o critério de corte segue sendo o teste de deleção.
-const LIMITE_CLAUDE = 200;
+const LIMITE_CONTRATO = 200;
 
 // Limite brando de SPEC e PLAN (regra 2): gatilho de revisão por acúmulo —
 // fase que não saiu, decisão que não foi convertida, desvio virado nota.
@@ -58,7 +57,7 @@ const MARCADOR = /^<!-- rodada: .+ @ ([0-9a-f]{7,40}|\d{4}-\d{2}-\d{2}) -->$/;
 // Catálogo dos invariantes mecânicos. Prefixos por família:
 //   E — estrutura comum a todos os documentos
 //   F — fronteira presente/futuro (SPEC)
-//   C — contrato (CLAUDE)
+//   C — contrato (AGENTS)
 //   T — rastreabilidade cruzada
 //   H — presente permanente (história que não foi convertida nem cortada)
 //   J — jurisdição (fato repetido fora do seu dono)
@@ -159,18 +158,18 @@ export const REGRAS = [
   {
     id: "C1",
     regra: "regra 3",
-    alvo: "CLAUDE.md",
+    alvo: "AGENTS.md",
     severidade: "violacao",
     titulo: "regra de ouro presente",
     porque:
-      "A disciplina central é a âncora da qual as outras regras derivam; sem ela o CLAUDE.md vira lista de preferências avulsas.",
+      "A disciplina central é a âncora da qual as outras regras derivam; sem ela o AGENTS.md vira lista de preferências avulsas.",
     ok: "## Regra de ouro\n\n**Zero dependências de runtime.** Tudo abaixo é desdobramento disso.",
     ruim: "(documento sem a seção)",
   },
   {
     id: "C2",
     regra: "regra 3",
-    alvo: "CLAUDE.md",
+    alvo: "AGENTS.md",
     severidade: "violacao",
     titulo: "regra de ouro formulada em uma frase em negrito",
     porque:
@@ -181,7 +180,7 @@ export const REGRAS = [
   {
     id: "C3",
     regra: "regra 4",
-    alvo: "CLAUDE.md",
+    alvo: "AGENTS.md",
     severidade: "violacao",
     titulo: '"Nunca fazer" não fica vazio',
     porque:
@@ -192,7 +191,7 @@ export const REGRAS = [
   {
     id: "C4",
     regra: "regra 4",
-    alvo: "CLAUDE.md",
+    alvo: "AGENTS.md",
     severidade: "violacao",
     titulo: "cada proibição carrega a justificativa na própria linha",
     porque:
@@ -203,7 +202,7 @@ export const REGRAS = [
   {
     id: "C5",
     regra: "regra 6",
-    alvo: "CLAUDE.md",
+    alvo: "AGENTS.md",
     severidade: "violacao",
     titulo: "estado das decisões explícito",
     porque:
@@ -229,7 +228,7 @@ export const REGRAS = [
     severidade: "violacao",
     titulo: "a tarefa declara seu módulo",
     porque:
-      "Tarefa que não nomeia o módulo não fecha o triângulo SPEC→PLAN→CLAUDE; o agente escolhe sozinho onde escrever.",
+      "Tarefa que não nomeia o módulo não fecha o triângulo SPEC→PLAN→AGENTS; o agente escolhe sozinho onde escrever.",
     ok: "- [ ] T1.1 — extração de links · módulo: check",
     ruim: "- [ ] T1.1 — extração de links",
   },
@@ -238,11 +237,11 @@ export const REGRAS = [
     regra: "regra 10",
     alvo: "PLAN.md",
     severidade: "violacao",
-    titulo: "o módulo da tarefa existe no CLAUDE.md",
+    titulo: "o módulo da tarefa existe no AGENTS.md",
     porque:
-      "Módulo ausente da Estrutura e dos títulos do CLAUDE.md é nome inventado no plano — o agente cria a pasta em qualquer lugar.",
-    ok: "Estrutura do CLAUDE.md contém `src/check.js`; a tarefa usa `· módulo: check`.",
-    ruim: "A tarefa usa `· módulo: parser`, que não aparece no CLAUDE.md.",
+      "Módulo ausente da Estrutura e dos títulos do AGENTS.md é nome inventado no plano — o agente cria a pasta em qualquer lugar.",
+    ok: "Estrutura do AGENTS.md contém `src/check.js`; a tarefa usa `· módulo: check`.",
+    ruim: "A tarefa usa `· módulo: parser`, que não aparece no AGENTS.md.",
   },
   {
     id: "T4",
@@ -370,7 +369,7 @@ export const REGRAS = [
     porque:
       "Decisão duplicada são duas verdades que divergem na primeira edição — e nenhuma das duas se sabe desatualizada. Ela mora no arquivo da sua jurisdição; os outros a referenciam pelo nome.",
     ok: 'A decisão de escopo vive no SPEC; o PLAN escreve "ver decisão **Formato do relatório** (SPEC)".',
-    ruim: 'A mesma "- [ ] **Formato do relatório** — …" no SPEC, no PLAN e no CLAUDE.',
+    ruim: 'A mesma "- [ ] **Formato do relatório** — …" no SPEC, no PLAN e no AGENTS.',
   },
   {
     id: "J2",
@@ -381,8 +380,8 @@ export const REGRAS = [
     titulo: "fato de dono único não é repetido fora do dono",
     porque:
       "Stack com versão, árvore de pastas e critério de aceitação têm um dono na tabela da regra 8. Repetir em outro arquivo cria a segunda cópia que ninguém atualiza.",
-    ok: "O CLAUDE.md tem a tabela de Stack com versões; o SPEC cita a tecnologia sem versão.",
-    ruim: "SPEC e CLAUDE têm, cada um, a sua tabela de Stack com versões.",
+    ok: "O AGENTS.md tem a tabela de Stack com versões; o SPEC cita a tecnologia sem versão.",
+    ruim: "SPEC e AGENTS têm, cada um, a sua tabela de Stack com versões.",
   },
   {
     id: "A0",
@@ -398,19 +397,19 @@ export const REGRAS = [
   {
     id: "A1",
     regra: "regra 10",
-    alvo: "CLAUDE.md",
+    alvo: "AGENTS.md",
     severidade: "aviso",
     promovivel: true,
     titulo: "as pastas da árvore Estrutura existem no disco",
     porque:
-      "A árvore do CLAUDE.md é lida como mapa: um caminho que não existe manda o agente criar arquivo no lugar errado, ou procurar onde não há.",
+      "A árvore do AGENTS.md é lida como mapa: um caminho que não existe manda o agente criar arquivo no lugar errado, ou procurar onde não há.",
     ok: "A árvore cita `src/check.js` e `src/check.js` existe.",
     ruim: "A árvore cita `src/parser/`, removido numa refatoração e nunca tirado do documento.",
   },
   {
     id: "A2",
     regra: "regra 10",
-    alvo: "CLAUDE.md (projeto com package.json ou Makefile)",
+    alvo: "AGENTS.md (projeto com package.json ou Makefile)",
     severidade: "aviso",
     promovivel: true,
     titulo: '"Como rodar" bate com os scripts do manifest',
@@ -422,7 +421,7 @@ export const REGRAS = [
   {
     id: "A3",
     regra: "regra 10",
-    alvo: "CLAUDE.md (projeto com package.json)",
+    alvo: "AGENTS.md (projeto com package.json)",
     severidade: "aviso",
     promovivel: true,
     titulo: "as versões da tabela Stack batem com o manifest",
@@ -434,14 +433,14 @@ export const REGRAS = [
   {
     id: "A4",
     regra: "regra 10",
-    alvo: "CLAUDE.md",
+    alvo: "AGENTS.md",
     severidade: "aviso",
     promovivel: true,
     titulo: "os nomes de env citados existem no .env.example",
     porque:
       "Variável documentada e ausente do exemplo (ou o contrário) é a causa mais comum de agente inventando nome de segredo. Só nomes são comparados; valor nunca é lido.",
-    ok: "O CLAUDE.md cita `DATABASE_URL` e o `.env.example` a declara.",
-    ruim: "O CLAUDE.md cita `DB_URL`; o `.env.example` só tem `DATABASE_URL`.",
+    ok: "O AGENTS.md cita `DATABASE_URL` e o `.env.example` a declara.",
+    ruim: "O AGENTS.md cita `DB_URL`; o `.env.example` só tem `DATABASE_URL`.",
   },
   {
     id: "A5",
@@ -459,7 +458,7 @@ export const REGRAS = [
   {
     id: "A6",
     regra: "§4",
-    alvo: "PLAN.md, CLAUDE.md",
+    alvo: "PLAN.md, AGENTS.md",
     severidade: "aviso",
     promovivel: true,
     titulo: "o marcador de rodada não está atrasado",
@@ -476,21 +475,33 @@ export const REGRAS = [
     promovivel: true,
     titulo: "satélites de docs/ têm ponteiro e índice, sem órfãos",
     porque:
-      "A extração da regra 11 só funciona com o ponteiro de volta: sem ele o arquivo extraído vira conhecimento que ninguém encontra, e o CLAUDE.md some com o assunto.",
-    ok: "`docs/borda-http.md` tem um ponteiro de uma linha no CLAUDE.md e entrada no `docs/README.md`.",
+      "A extração da regra 11 só funciona com o ponteiro de volta: sem ele o arquivo extraído vira conhecimento que ninguém encontra, e o AGENTS.md some com o assunto.",
+    ok: "`docs/borda-http.md` tem um ponteiro de uma linha no AGENTS.md e entrada no `docs/README.md`.",
     ruim: "`docs/borda-http.md` existe e nenhum documento aponta para ele.",
   },
   {
     id: "A8",
     regra: "§1",
-    alvo: "<pacote>/CLAUDE.md",
+    alvo: "<pacote>/AGENTS.md",
     severidade: "aviso",
     promovivel: true,
-    titulo: "o CLAUDE.md de pacote tem recipe própria",
+    titulo: "o AGENTS.md de pacote tem recipe própria",
     porque:
-      "CLAUDE.md de pacote que repete o raiz é a cópia que diverge (regra 8) e mais um arquivo lido por sessão sem nada a acrescentar.",
+      "AGENTS.md de pacote que repete o raiz é a cópia que diverge (regra 8) e mais um arquivo lido por sessão sem nada a acrescentar.",
     ok: "O pacote declara a regra própria dele e aponta o raiz para o resto.",
-    ruim: "O `<pacote>/CLAUDE.md` repete a regra de ouro e as convenções do raiz.",
+    ruim: "O `<pacote>/AGENTS.md` repete a regra de ouro e as convenções do raiz.",
+  },
+  {
+    id: "A9",
+    regra: "§1",
+    alvo: "AGENTS.md e contratos locais",
+    severidade: "aviso",
+    promovivel: true,
+    titulo: "a ponte do Claude, quando presente, importa o contrato canônico",
+    porque:
+      "CLAUDE.md deve carregar o AGENTS.md do mesmo diretório. Regras copiadas ou outro alvo fariam os agentes obedecer contratos diferentes.",
+    ok: "CLAUDE.md contém apenas @AGENTS.md, ou é um symlink para esse arquivo.",
+    ruim: "CLAUDE.md contém uma cópia das regras ou importa um arquivo diferente.",
   },
   {
     id: "S1",
@@ -506,11 +517,11 @@ export const REGRAS = [
   {
     id: "V1",
     regra: "regra 11",
-    alvo: "CLAUDE.md",
+    alvo: "AGENTS.md",
     severidade: "aviso",
-    titulo: `volume do CLAUDE.md acima de ${LIMITE_CLAUDE} linhas`,
+    titulo: `volume do AGENTS.md acima de ${LIMITE_CONTRATO} linhas`,
     porque:
-      "O CLAUDE.md é lido no início de toda sessão; volume ali cobra atenção sempre. O corte é julgamento (teste de deleção), por isso avisa em vez de falhar.",
+      "O AGENTS.md é lido no início de toda sessão; volume ali cobra atenção sempre. O corte é julgamento (teste de deleção), por isso avisa em vez de falhar.",
     ok: "Seção de área com meia página; o excedente vive em docs/<tema>.md com um ponteiro de uma linha.",
     ruim: "Uma seção de área com três páginas de detalhe de integração.",
   },
@@ -736,17 +747,17 @@ const MANIFESTS_CONHECIDOS = [
 ];
 
 async function ancoragem(dir, docs, sombras, achar) {
-  const claude = sombras["CLAUDE.md"];
+  const contrato = sombras["AGENTS.md"];
   const manifest = await lerManifests(dir);
 
   // --- A0: o projeto tem manifest que a ancoragem não sabe ler? ---
-  if (claude && !MANIFESTS_COBERTOS.some((m) => existsSync(path.join(dir, m)))) {
+  if (contrato && !MANIFESTS_COBERTOS.some((m) => existsSync(path.join(dir, m)))) {
     const presentes = MANIFESTS_CONHECIDOS.filter((m) =>
       existsSync(path.join(dir, m)),
     );
     if (presentes.length) {
       achar(
-        "CLAUDE.md",
+        "AGENTS.md",
         1,
         "A0",
         `o projeto usa ${presentes.join(", ")}; A2 (Como rodar) e A3 (versões da Stack) só comparam contra package.json e Makefile, então não rodaram aqui`,
@@ -755,11 +766,11 @@ async function ancoragem(dir, docs, sombras, achar) {
   }
 
   // --- A1: as pastas e arquivos da árvore existem ---
-  if (claude && docs["CLAUDE.md"]) {
-    const secs = secoes(claude);
+  if (contrato && docs["AGENTS.md"]) {
+    const secs = secoes(contrato);
     const est = secs.find((s) => /^Estrutura/.test(s.titulo));
     if (est) {
-      const bruto = corpoOriginal(docs["CLAUDE.md"], est, secs);
+      const bruto = corpoOriginal(docs["AGENTS.md"], est, secs);
       const dentro = bruto.match(/```[^\n]*\n([\s\S]*?)```/);
       if (dentro) {
         const pilha = [];
@@ -777,7 +788,7 @@ async function ancoragem(dir, docs, sombras, achar) {
           if (nome.endsWith("/")) pilha.push({ recuo, prefixo: rel });
           if (!existsSync(path.join(dir, rel))) {
             achar(
-              "CLAUDE.md",
+              "AGENTS.md",
               est.linha,
               "A1",
               `a árvore da Estrutura cita "${rel}", que não existe no repositório`,
@@ -789,11 +800,11 @@ async function ancoragem(dir, docs, sombras, achar) {
   }
 
   // --- A2: os comandos de "Como rodar" existem nos scripts do manifest ---
-  if (claude && (manifest.scripts || manifest.alvosMake)) {
-    const rodar = secoes(claude).find((s) => /^Como rodar/.test(s.titulo));
-    if (rodar && docs["CLAUDE.md"]) {
-      const secs = secoes(claude);
-      const bruto = corpoOriginal(docs["CLAUDE.md"], rodar, secs);
+  if (contrato && (manifest.scripts || manifest.alvosMake)) {
+    const rodar = secoes(contrato).find((s) => /^Como rodar/.test(s.titulo));
+    if (rodar && docs["AGENTS.md"]) {
+      const secs = secoes(contrato);
+      const bruto = corpoOriginal(docs["AGENTS.md"], rodar, secs);
       for (const bloco of bruto.matchAll(/```[^\n]*\n([\s\S]*?)```/g)) {
         for (const cmd of bloco[1].split("\n")) {
           const npm = cmd.match(/\b(?:npm|pnpm|yarn|bun)\s+(?:run\s+)?([\w:-]+)/);
@@ -802,7 +813,7 @@ async function ancoragem(dir, docs, sombras, achar) {
             const s = npm[1];
             if (!(s in manifest.scripts) && !embutidos.includes(s)) {
               achar(
-                "CLAUDE.md",
+                "AGENTS.md",
                 rodar.linha,
                 "A2",
                 `"Como rodar" usa o script "${s}", ausente de scripts no package.json`,
@@ -812,7 +823,7 @@ async function ancoragem(dir, docs, sombras, achar) {
           const make = cmd.match(/^\s*make\s+([\w.-]+)/);
           if (make && manifest.alvosMake && !manifest.alvosMake.has(make[1])) {
             achar(
-              "CLAUDE.md",
+              "AGENTS.md",
               rodar.linha,
               "A2",
               `"Como rodar" usa o alvo make "${make[1]}", ausente do Makefile`,
@@ -824,8 +835,8 @@ async function ancoragem(dir, docs, sombras, achar) {
   }
 
   // --- A3: as versões da tabela Stack batem com o manifest ---
-  if (claude && (manifest.engines || manifest.deps)) {
-    const stack = secoes(claude).find((s) => /^Stack/.test(s.titulo));
+  if (contrato && (manifest.engines || manifest.deps)) {
+    const stack = secoes(contrato).find((s) => /^Stack/.test(s.titulo));
     if (stack) {
       const maior = (v) => {
         const m = String(v).match(/(\d+)/);
@@ -835,7 +846,7 @@ async function ancoragem(dir, docs, sombras, achar) {
       const engNode = manifest.engines?.node && maior(manifest.engines.node);
       if (noNode && engNode && noNode[1] !== engNode) {
         achar(
-          "CLAUDE.md",
+          "AGENTS.md",
           stack.linha,
           "A3",
           `a tabela Stack declara Node ${noNode[1]}; o package.json exige engines.node ${manifest.engines.node}`,
@@ -847,7 +858,7 @@ async function ancoragem(dir, docs, sombras, achar) {
         const real = maior(faixa);
         if (citado && real && citado[1] !== real) {
           achar(
-            "CLAUDE.md",
+            "AGENTS.md",
             stack.linha,
             "A3",
             `a tabela Stack declara ${dep} ${citado[1]}; o manifest instala ${faixa}`,
@@ -859,17 +870,17 @@ async function ancoragem(dir, docs, sombras, achar) {
 
   // --- A4: nomes de env citados existem no .env.example (nomes, nunca valores) ---
   const envExemplo = path.join(dir, ".env.example");
-  if (claude && existsSync(envExemplo)) {
+  if (contrato && existsSync(envExemplo)) {
     const declarados = new Set(
       [...(await readFile(envExemplo, "utf8")).matchAll(/^\s*([A-Z][A-Z0-9_]*)\s*=/gm)].map(
         (m) => m[1],
       ),
     );
-    for (const s of secoes(claude).filter((x) => /env|segredo/i.test(x.titulo))) {
+    for (const s of secoes(contrato).filter((x) => /env|segredo/i.test(x.titulo))) {
       for (const m of s.corpo.matchAll(/`([A-Z][A-Z0-9_]{2,})`/g)) {
         if (!declarados.has(m[1])) {
           achar(
-            "CLAUDE.md",
+            "AGENTS.md",
             linhaEm(s, m.index),
             "A4",
             `a variável \`${m[1]}\` é citada aqui e não existe no .env.example`,
@@ -951,7 +962,7 @@ async function ancoragem(dir, docs, sombras, achar) {
       const rel = `docs/${f}`;
       if (!corpos.includes(rel)) {
         achar(
-          "CLAUDE.md",
+          "AGENTS.md",
           1,
           "A7",
           `"${rel}" existe e nenhum documento do doc-set aponta para ele (regra 11: a extração exige o ponteiro de volta)`,
@@ -959,7 +970,7 @@ async function ancoragem(dir, docs, sombras, achar) {
       }
       if (indice !== null && !indice.includes(f)) {
         achar(
-          "CLAUDE.md",
+          "AGENTS.md",
           1,
           "A7",
           `"${rel}" não aparece no índice docs/README.md`,
@@ -968,7 +979,7 @@ async function ancoragem(dir, docs, sombras, achar) {
     }
     if (indice === null && arquivos.length > 3) {
       achar(
-        "CLAUDE.md",
+        "AGENTS.md",
         1,
         "A7",
         `docs/ tem ${arquivos.length} arquivos e nenhum docs/README.md que diga o que mora onde`,
@@ -976,9 +987,9 @@ async function ancoragem(dir, docs, sombras, achar) {
     }
   }
 
-  // --- A8: CLAUDE.md de pacote com recipe própria (monorepo) ---
-  if (docs["CLAUDE.md"]) {
-    const raiz = sombras["CLAUDE.md"];
+  // --- A8: AGENTS.md de pacote com recipe própria (monorepo) ---
+  if (docs["AGENTS.md"]) {
+    const raiz = sombras["AGENTS.md"];
     const ouroRaiz = secoes(raiz).find((s) => /^Regra de ouro/.test(s.titulo));
     const frase = ouroRaiz?.corpo.match(/\*\*([^*]+)\*\*/)?.[1]?.trim();
     for (const base of ["packages", "apps"]) {
@@ -991,14 +1002,14 @@ async function ancoragem(dir, docs, sombras, achar) {
         continue;
       }
       for (const p of pacotes.filter((x) => x.isDirectory())) {
-        const alvo = path.join(raizPacotes, p.name, "CLAUDE.md");
+        const alvo = path.join(raizPacotes, p.name, "AGENTS.md");
         if (!existsSync(alvo) || (await lstat(alvo)).isSymbolicLink()) continue;
         const md = semFences(await readFile(alvo, "utf8"));
-        const rel = `${base}/${p.name}/CLAUDE.md`;
+        const rel = `${base}/${p.name}/AGENTS.md`;
         const ouro = secoes(md).find((s) => /^Regra de ouro/.test(s.titulo));
         const fraseLocal = ouro?.corpo.match(/\*\*([^*]+)\*\*/)?.[1]?.trim();
         if (frase && fraseLocal && frase === fraseLocal) {
-          achar(rel, ouro.linha, "A8", "a regra de ouro é cópia literal da do CLAUDE.md raiz");
+          achar(rel, ouro.linha, "A8", "a regra de ouro é cópia literal da do AGENTS.md raiz");
         }
         const linhasRaiz = new Set(
           linhas(raiz)
@@ -1014,16 +1025,32 @@ async function ancoragem(dir, docs, sombras, achar) {
             rel,
             1,
             "A8",
-            `${repetidas.length} de ${proprias.length} convenções são cópia literal do CLAUDE.md raiz; um recipe de pacote diz só o que difere`,
+            `${repetidas.length} de ${proprias.length} convenções são cópia literal do AGENTS.md raiz; um recipe de pacote diz só o que difere`,
           );
         }
       }
     }
   }
+  // A ponte é opcional para um doc-set usado só por outros agentes. Quando
+  // presente, precisa apontar para a mesma fonte; não é outro contrato.
+  for (const nome of Object.keys(docs).filter((n) => n === "AGENTS.md" || n.endsWith("/AGENTS.md"))) {
+    const ponte = path.join(path.dirname(nome), "CLAUDE.md");
+    const alvo = path.join(dir, ponte);
+    let entrada;
+    try { entrada = await lstat(alvo); }
+    catch (e) { if (e.code === "ENOENT") continue; throw e; }
+    let valida = false;
+    try {
+      valida = entrada.isSymbolicLink()
+        ? realpathSync(alvo) === realpathSync(path.join(dir, nome))
+        : entrada.isFile() && (await readFile(alvo, "utf8")).trim() === "@AGENTS.md";
+    } catch { /* ponte quebrada é um achado */ }
+    if (!valida) achar(nome, 1, "A9", `${ponte} deve conter apenas @AGENTS.md ou apontar por symlink para o contrato do mesmo diretório`);
+  }
 }
 
 // Estado do doc-set em forma legível por máquina. O parsing já existe para as
-// checagens; isto só o expõe, para que hook, statusline e os próprios comandos
+// checagens; isto só o expõe, para que a skill e scripts do usuário
 // leiam estrutura em vez de reparsear prosa.
 export async function estado(dir) {
   const docs = {};
@@ -1153,7 +1180,7 @@ export async function verificar(dir, opcoes = {}) {
       if (PASTAS_FORA_DO_INDICE.has(entrada.name)) continue;
       const nome = `${rel}/${entrada.name}`;
       if (entrada.isDirectory()) await coletar(nome, contratos);
-      else if (entrada.isFile() && (contratos ? entrada.name === "CLAUDE.md" : entrada.name.endsWith(".md"))) {
+      else if (entrada.isFile() && (contratos ? entrada.name === "AGENTS.md" : entrada.name.endsWith(".md"))) {
         docs[nome] = await readFile(path.join(dir, nome), "utf8");
       }
     }
@@ -1174,22 +1201,22 @@ export async function verificar(dir, opcoes = {}) {
     achados.push({ arquivo, linha, id, regra: r.regra, severidade, msg });
   };
 
-  // Volume do CLAUDE.md (regra 11): ele é lido em toda sessão; acima do limite
+  // Volume do AGENTS.md (regra 11): ele é lido em toda sessão; acima do limite
   // brando, sugerir compactação ou extração de seções de área para docs/.
-  if (docs["CLAUDE.md"]) {
-    const n = linhas(docs["CLAUDE.md"]).length;
-    if (n > LIMITE_CLAUDE) {
+  if (docs["AGENTS.md"]) {
+    const n = linhas(docs["AGENTS.md"]).length;
+    if (n > LIMITE_CONTRATO) {
       achar(
-        "CLAUDE.md",
+        "AGENTS.md",
         1,
         "V1",
-        `${n} linhas (limite brando: ${LIMITE_CLAUDE}); compactar ou extrair seções de área para docs/<tema>.md (regra 11)`,
+        `${n} linhas (limite brando: ${LIMITE_CONTRATO}); compactar ou extrair seções de área para docs/<tema>.md (regra 11)`,
       );
     }
   }
 
   // As checagens estruturais rodam sobre a versão sem fences; o original só
-  // serve a buscas de conteúdo (módulos na Estrutura do CLAUDE.md).
+  // serve a buscas de conteúdo (módulos na Estrutura do AGENTS.md).
   const sombras = Object.fromEntries(
     Object.entries(docs).map(([n, md]) => [n, semFences(md)]),
   );
@@ -1288,26 +1315,26 @@ export async function verificar(dir, opcoes = {}) {
     }
   }
 
-  // --- CLAUDE.md: regra de ouro (2), Nunca fazer (3), estado explícito (5) ---
-  const claude = sombras["CLAUDE.md"];
-  if (claude) {
-    const ouro = secao(claude, "Regra de ouro");
+  // --- AGENTS.md: regra de ouro (2), Nunca fazer (3), estado explícito (5) ---
+  const contrato = sombras["AGENTS.md"];
+  if (contrato) {
+    const ouro = secao(contrato, "Regra de ouro");
     if (!ouro) {
-      achar("CLAUDE.md", 1, "C1", 'sem seção "Regra de ouro" (regra 3)');
+      achar("AGENTS.md", 1, "C1", 'sem seção "Regra de ouro" (regra 3)');
     } else if (!/\*\*[^*]+\*\*/.test(ouro.corpo)) {
       achar(
-        "CLAUDE.md",
+        "AGENTS.md",
         ouro.linha,
         "C2",
         "a regra de ouro não está formulada em uma frase em negrito",
       );
     }
-    const nunca = secao(claude, "Nunca fazer");
+    const nunca = secao(contrato, "Nunca fazer");
     if (nunca) {
       const itens = bullets(nunca);
       if (itens.length === 0) {
         achar(
-          "CLAUDE.md",
+          "AGENTS.md",
           nunca.linha,
           "C3",
           '"Nunca fazer" vazio; registre uma proibição específica ou omita a seção (regra 4)',
@@ -1316,7 +1343,7 @@ export async function verificar(dir, opcoes = {}) {
       for (const b of itens) {
         if (!/—\s*\S/.test(b.texto)) {
           achar(
-            "CLAUDE.md",
+            "AGENTS.md",
             b.linha,
             "C4",
             'proibição sem justificativa na própria linha (após "—")',
@@ -1324,7 +1351,7 @@ export async function verificar(dir, opcoes = {}) {
         }
       }
     }
-    const decisoes = secao(claude, "Decisões em aberto");
+    const decisoes = secao(contrato, "Decisões em aberto");
     if (
       !decisoes || (
         !/- \[ \]/.test(decisoes.corpo) &&
@@ -1332,7 +1359,7 @@ export async function verificar(dir, opcoes = {}) {
       )
     ) {
       achar(
-        "CLAUDE.md",
+        "AGENTS.md",
         decisoes?.linha ?? 1,
         "C5",
         'declare "Decisões em aberto" com pendências ou "Nenhuma pendente." (regra 6)',
@@ -1341,17 +1368,17 @@ export async function verificar(dir, opcoes = {}) {
   }
 
   // --- PLAN.md: tarefas com módulo e rastreabilidade cruzada (regra 10) ---
-  // Onde um módulo conta como definido no CLAUDE.md: os títulos de seção e o
+  // Onde um módulo conta como definido no AGENTS.md: os títulos de seção e o
   // corpo original das seções "Estrutura"/"Módulos" (a árvore vive num bloco
   // de código). Menção em prosa solta não fecha rastreabilidade.
-  let modulosDoClaude = null;
-  if (claude) {
-    const secs = secoes(claude);
-    modulosDoClaude = [
+  let modulosDoContrato = null;
+  if (contrato) {
+    const secs = secoes(contrato);
+    modulosDoContrato = [
       ...secs.map((s) => s.titulo),
       ...secs
         .filter((s) => /^(Estrutura|Módulos)/.test(s.titulo))
-        .map((s) => corpoOriginal(docs["CLAUDE.md"], s, secs)),
+        .map((s) => corpoOriginal(docs["AGENTS.md"], s, secs)),
     ].join("\n");
   }
   const plan = sombras["PLAN.md"];
@@ -1372,15 +1399,15 @@ export async function verificar(dir, opcoes = {}) {
           "T2",
           `${id} sem "· módulo: <módulo>" (regra 10: tarefas referenciam módulos)`,
         );
-      } else if (modulosDoClaude !== null) {
+      } else if (modulosDoContrato !== null) {
         const esc = mod[1].replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
         const palavra = new RegExp(`(^|[^\\w-])${esc}([^\\w-]|$)`, "i");
-        if (!palavra.test(modulosDoClaude)) {
+        if (!palavra.test(modulosDoContrato)) {
           achar(
             "PLAN.md",
             i + 1,
             "T3",
-            `${id} referencia o módulo "${mod[1]}", que não aparece na Estrutura nem nos títulos do CLAUDE.md`,
+            `${id} referencia o módulo "${mod[1]}", que não aparece na Estrutura nem nos títulos do AGENTS.md`,
           );
         }
       }
@@ -1543,7 +1570,7 @@ export async function verificar(dir, opcoes = {}) {
   const DONOS = [
     {
       fato: "a tabela de Stack com versões",
-      dono: "CLAUDE.md",
+      dono: "AGENTS.md",
       prefixo: "Stack",
       intrusos: ["SPEC.md"],
       // Stack citada sem versão no SPEC é referência legítima, não cópia.
@@ -1551,7 +1578,7 @@ export async function verificar(dir, opcoes = {}) {
     },
     {
       fato: "a árvore de pastas",
-      dono: "CLAUDE.md",
+      dono: "AGENTS.md",
       prefixo: "Estrutura",
       intrusos: ["SPEC.md", "PLAN.md"],
     },
@@ -1823,7 +1850,7 @@ async function main() {
 }
 
 // Entry-point por realpath, não por string de URL: em macOS `/tmp` e `/var`
-// são symlinks, e symlinkar ~/.claude/bin/docscheck.mjs para a cópia do repo é
+// são symlinks, e symlinkar $DOCS_KIT/bin/docscheck.mjs para a cópia do repo é
 // a primeira coisa que alguém faz para não reinstalar a cada edição. Comparar
 // as URLs cruas faz o guard falhar nesses casos — e o CLI sai 0 sem ter
 // verificado nada, que é a pior falha possível num verificador.

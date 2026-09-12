@@ -1,15 +1,4 @@
----
-description: Monta o briefing de implementação de uma tarefa do PLAN — o contrato vigente, os invariantes que ela não pode violar e o que prova que ficou pronta. Não escreve código nem documento.
-argument-hint: <id da tarefa, ex.: T2.1> [contexto adicional]
-# Este comando prepara a implementação. A ausência de Write/Edit nesta lista
-# não restringe ferramentas; o escopo de leitura é uma instrução ao agente.
-allowed-tools: Read, Glob, Grep, Bash(git log:*), Bash(git diff:*), Bash(ls:*), Bash(tree:*), Bash(cat:*), Bash(head:*), Bash(wc:*)
-disable-model-invocation: true
----
-
-# /docs:tarefa
-
-Tarefa pedida: $ARGUMENTS
+# docs tarefa
 
 Este é o caminho documentação → código. O doc-set existe para que uma sessão
 saiba o que fazer e sob quais regras; este comando extrai isso para **uma**
@@ -18,10 +7,10 @@ sessão normal — aqui nada é escrito.
 
 ## 0. Carregue a gramática e localize a tarefa
 
-Leia `~/.claude/docs-kit/GRAMATICA.md` (expanda `~`). Ausente: **pare** e diga
-que `./install.sh` resolve.
+Leia `$DOCS_KIT/grammar/GRAMATICA.md`. Ausente: **pare** e diga
+que a instalação está incompleta; restaure a gramática no diretório da skill.
 
-Encontre a tarefa no PLAN.md pelo id. Se `$ARGUMENTS` não trouxer um id:
+Encontre a tarefa no PLAN.md pelo id. Se o contexto da solicitação não trouxer um id:
 
 - havendo uma fase corrente com tarefas abertas, liste as tarefas `[ ]` dela em
   uma linha cada e pergunte qual;
@@ -34,7 +23,7 @@ Se o id não existir, não invente: diga que não existe e liste os ids próximo
 
 Leia, nesta ordem, e recolha só o que **esta** tarefa precisa:
 
-1. **CLAUDE.md** — a regra de ouro; a seção da área do módulo da tarefa; as
+1. **AGENTS.md** — a regra de ouro; a seção da área do módulo da tarefa; as
    convenções que se aplicam; as proibições de "Nunca fazer" que tocam este
    trabalho; os gaps conhecidos da área.
 2. **PLAN.md** — a tarefa: módulo, testes ou verificação que a definem,
@@ -64,7 +53,7 @@ Uma mensagem, nesta forma:
   imitar).
 - **Contrato vigente** — a regra de ouro em uma linha e as convenções que se
   aplicam aqui, cada uma com a justificativa. Só as que tocam esta tarefa;
-  despejar o CLAUDE.md inteiro não é briefing.
+  despejar o AGENTS.md inteiro não é briefing.
 - **Não pode** — as proibições relevantes de "Nunca fazer" e os invariantes de
   domínio (`I<n>`) que a tarefa precisa preservar, cada um com a consequência
   de violar.
@@ -75,16 +64,16 @@ Uma mensagem, nesta forma:
 - **Dependências e riscos** — tarefa anterior não fechada; gap conhecido da
   área que vai atrapalhar; risco do PLAN que aponta esta fase; decisão em
   aberto que trava a tarefa. **Decisão pendente que a bloqueia é motivo para
-  parar**: nomeie e sugira `/docs:decidir` antes de implementar.
+  parar**: nomeie e sugira `docs decidir` antes de implementar.
 - **Buracos** — o que o doc-set não responde e a implementação vai precisar
-  decidir. Cada um vira candidato a `/docs:decidir` durante o trabalho, não
+  decidir. Cada um vira candidato a `docs decidir` durante o trabalho, não
   suposição silenciosa.
 
 ## 3. Nunca
 
 - Escrever ou alterar código. Este comando prepara; a sessão implementa.
 - Escrever ou alterar documento. Convenção nova descoberta aqui vira sugestão
-  de `/docs:decidir`, não edição.
+  de `docs decidir`, não edição.
 - Inventar critério de aceitação que o doc-set não tem. Faltando, o briefing
   diz que falta e propõe a formulação para o usuário aprovar.
 - Ampliar o escopo da tarefa. Trabalho vizinho que você enxergar entra em
@@ -94,5 +83,5 @@ Uma mensagem, nesta forma:
 ## 4. Feche
 
 Uma linha final com o encaminhamento: "Implemente na sessão; ao fechar o marco,
-`/docs:rodada <nome>` sincroniza os documentos. Convenção decidida no caminho:
-`/docs:decidir`."
+`docs rodada <nome>` sincroniza os documentos. Convenção decidida no caminho:
+`docs decidir`."

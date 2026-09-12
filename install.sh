@@ -1,62 +1,52 @@
 #!/usr/bin/env bash
-# Instala o claude-docs-kit:
-#   comandos   → ~/.claude/commands/docs/   (viram /docs:<nome> no autocomplete)
-#   docscheck  → ~/.claude/bin/
-#   gramática  → ~/.claude/docs-kit/GRAMATICA.md
-#   templates  → ~/.claude/docs-kit/templates/
-# Rode de dentro do repo: ./install.sh
+# Uma fonte no checkout; links para os dois agentes e para o CLI.
 set -euo pipefail
 
-RAIZ="$(cd "$(dirname "$0")" && pwd)"
+RAIZ="$(cd "$(dirname "$0")" && pwd -P)"
+DESTINO_HOME="${HOME}"
+if [ "${1:-}" = "--home" ] && [ "$#" -eq 2 ] && [ -n "$2" ]; then
+  DESTINO_HOME="$2"
+elif [ "$#" -ne 0 ]; then
+  echo 'Uso: ./install.sh [--home <diretório>]' >&2
+  exit 2
+fi
+case "$DESTINO_HOME" in
+  /*) ;;
+  *) echo 'erro: --home deve ser um caminho absoluto' >&2; exit 2 ;;
+esac
 
-instalar() { # instalar <origem> <destino> <rótulo>
-  local origem="$1" destino="$2" rotulo="$3"
-  mkdir -p "$(dirname "$destino")"
-  if [ -f "$destino" ] && cmp -s "$origem" "$destino"; then
-    echo "sem mudança: $rotulo"
-  elif [ -f "$destino" ]; then
-    cp "$origem" "$destino"
-    echo "atualizado: $rotulo"
-  else
-    cp "$origem" "$destino"
-    echo "instalado: $rotulo"
-  fi
-}
+command -v node >/dev/null || { echo 'erro: Node ≥ 20 é necessário' >&2; exit 2; }
+node -e 'if (Number(process.versions.node.split(".")[0]) < 20) process.exit(2)'
 
-for f in "$RAIZ"/commands/docs/*.md; do
-  instalar "$f" "${HOME}/.claude/commands/docs/$(basename "$f")" \
-    "/docs:$(basename "${f%.md}")"
-done
+alvos=(
+  "$DESTINO_HOME/.agents/skills/docs"
+  "$DESTINO_HOME/.claude/skills/docs"
+  "$DESTINO_HOME/.local/bin/docscheck"
+)
+origens=("$RAIZ" "$RAIZ" "$RAIZ/bin/docscheck.mjs")
 
-instalar "$RAIZ/bin/docscheck.mjs" "${HOME}/.claude/bin/docscheck.mjs" \
-  "docscheck (~/.claude/bin/docscheck.mjs)"
-
-# A gramática e os templates são lidos em runtime pelos comandos (fonte única;
-# nenhum comando os parafraseia). Ausentes, os comandos param e mandam rodar
-# este script.
-instalar "$RAIZ/grammar/GRAMATICA.md" "${HOME}/.claude/docs-kit/GRAMATICA.md" \
-  "gramática (~/.claude/docs-kit/GRAMATICA.md)"
-
-for f in "$RAIZ"/templates/*.md; do
-  instalar "$f" "${HOME}/.claude/docs-kit/templates/$(basename "$f")" \
-    "template $(basename "$f")"
-done
-
-# O hook é copiado mas não é ativado: ligar exige editar settings.json, e isso
-# é decisão de quem instala. O README traz o bloco.
-instalar "$RAIZ/hooks/estado-na-sessao.mjs" \
-  "${HOME}/.claude/docs-kit/hooks/estado-na-sessao.mjs" \
-  "hook de SessionStart (inativo até você ligar; ver README)"
-chmod +x "${HOME}/.claude/docs-kit/hooks/estado-na-sessao.mjs"
-
-# Comandos da v4 viviam soltos em ~/.claude/commands/; sem remoção, /bootstrap
-# e /rodada continuam no autocomplete servindo a gramática antiga.
-for antigo in bootstrap rodada; do
-  alvo="${HOME}/.claude/commands/${antigo}.md"
-  if [ -f "$alvo" ]; then
-    echo "aviso: ${alvo} é da v4 e ainda responde por /${antigo};"
-    echo "       remova com: rm ${alvo}"
+# Confira todos os conflitos antes de criar qualquer link. Um diretório de
+# outra skill ou um executável existente não deve ser substituído.
+for alvo in "${alvos[@]}"; do
+  if [ -e "$alvo" ] && [ ! -L "$alvo" ]; then
+    echo "erro: $alvo já existe e não é symlink; mova-o antes de instalar" >&2
+    exit 1
   fi
 done
+for i in 0 1 2; do
+  alvo="${alvos[$i]}"
+  origem="${origens[$i]}"
+  if [ -L "$alvo" ] && [ "$(readlink "$alvo")" = "$origem" ]; then
+    echo "sem mudança: $alvo"
+    continue
+  fi
+  mkdir -p "$(dirname "$alvo")"
+  # Remover apenas o link permite atualizar depois de mover o checkout.
+  if [ -L "$alvo" ]; then rm "$alvo"; fi
+  ln -s "$origem" "$alvo"
+  echo "instalado: $alvo -> $origem"
+done
 
-echo "Pronto. Os comandos aparecem ao digitar /docs no Claude Code."
+echo 'Pronto. Codex: $docs fundar · Claude Code: /docs fundar'
+echo 'Para usar docscheck diretamente, inclua ~/.local/bin no PATH.'
+echo 'Abra uma nova sessão para descobrir a skill. Se mover o checkout, rode install.sh novamente.'

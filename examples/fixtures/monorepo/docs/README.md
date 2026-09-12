@@ -1,6 +1,6 @@
 # docs/
 
-> Índice do conhecimento extraído do CLAUDE.md — o que cresceu além de meia
+> Índice do conhecimento extraído do AGENTS.md — o que cresceu além de meia
 > página e ganhou arquivo próprio.
 
 | Arquivo | O que mora ali |

@@ -39,16 +39,16 @@ test("o doc-set de referência (fixtures/linkcheck) passa sem violações", asyn
   const r = await verificar(FIXTURE);
   assert.deepEqual(r.violacoes, []);
   assert.deepEqual(r.avisos, []);
-  assert.deepEqual(r.arquivos.sort(), ["CLAUDE.md", "PLAN.md", "SPEC.md"]);
+  assert.deepEqual(r.arquivos.sort(), ["AGENTS.md", "PLAN.md", "SPEC.md"]);
 });
 
-test("CLAUDE.md acima do limite brando gera aviso, nunca violação", async () => {
+test("AGENTS.md acima do limite brando gera aviso, nunca violação", async () => {
   const recheio = Array.from(
     { length: 220 },
     (_, i) => `Linha de contexto ${i} da seção, sem nada de gramática.`,
   );
   const dir = await docSet({
-    "CLAUDE.md": [
+    "AGENTS.md": [
       "# projeto",
       "",
       "> Contrato de como escrevemos código aqui.",
@@ -118,9 +118,9 @@ test("SPEC cujo cabeçalho não declara a fronteira presente/futuro", async () =
   assert.deepEqual(ids(r), ["F1"]);
 });
 
-test('CLAUDE sem regra de ouro, proibição sem justificativa e estado implícito', async () => {
+test('AGENTS sem regra de ouro, proibição sem justificativa e estado implícito', async () => {
   const dir = await docSet({
-    "CLAUDE.md": [
+    "AGENTS.md": [
       "# projeto",
       "",
       "> Contrato de como escrevemos código aqui.",
@@ -158,7 +158,7 @@ test("PLAN com tarefa sem módulo, módulo fantasma, constraint e tarefa inexist
       "> O que está abaixo é planejado.",
       "",
     ].join("\n"),
-    "CLAUDE.md": [
+    "AGENTS.md": [
       "# projeto",
       "",
       "> Contrato de como escrevemos código aqui.",
@@ -203,7 +203,7 @@ test("PLAN com tarefa sem módulo, módulo fantasma, constraint e tarefa inexist
 
 test("conteúdo de bloco de código não é gramática: heading, TBD e marcador em fence são ignorados", async () => {
   const dir = await docSet({
-    "CLAUDE.md": [
+    "AGENTS.md": [
       "# projeto",
       "",
       "> Contrato de como escrevemos código aqui.",
@@ -234,9 +234,9 @@ test("conteúdo de bloco de código não é gramática: heading, TBD e marcador 
   assert.deepEqual(r.violacoes, []);
 });
 
-test("módulo citado apenas em prosa do CLAUDE.md não fecha a rastreabilidade", async () => {
+test("módulo citado apenas em prosa do AGENTS.md não fecha a rastreabilidade", async () => {
   const dir = await docSet({
-    "CLAUDE.md": [
+    "AGENTS.md": [
       "# projeto",
       "",
       "> Contrato de como escrevemos código aqui.",
@@ -268,7 +268,7 @@ test("módulo citado apenas em prosa do CLAUDE.md não fecha a rastreabilidade",
 
 test("módulo definido na Estrutura (dentro do bloco de código) fecha a rastreabilidade", async () => {
   const dir = await docSet({
-    "CLAUDE.md": [
+    "AGENTS.md": [
       "# projeto",
       "",
       "> Contrato de como escrevemos código aqui.",
@@ -306,7 +306,7 @@ test("módulo definido na Estrutura (dentro do bloco de código) fecha a rastrea
 
 test("decisão resolvida pode apontar tarefa já compactada; pendente não pode", async () => {
   const dir = await docSet({
-    "CLAUDE.md": [
+    "AGENTS.md": [
       "# projeto",
       "",
       "> Contrato de como escrevemos código aqui.",
@@ -350,7 +350,7 @@ test("decisão resolvida pode apontar tarefa já compactada; pendente não pode"
 
 test("marcador de rodada: formato válido passa, inválido acusa", async () => {
   const base = {
-    "CLAUDE.md": [
+    "AGENTS.md": [
       "# projeto",
       "",
       "> Contrato de como escrevemos código aqui.",
@@ -393,7 +393,7 @@ test("marcador de rodada: formato válido passa, inválido acusa", async () => {
 
 // --- H: presente permanente (regra 2) e J: jurisdição (regra 8) ---
 
-const CLAUDE_MINIMO = [
+const CONTRATO_MINIMO = [
   // Contrato mínimo válido para isolar as regras nos testes abaixo.
   "# projeto",
   "",
@@ -417,8 +417,8 @@ const avisosDe = (r, familia) =>
 
 test("H1: data e carimbo de rodada no corpo acendem; o marcador e a marca de fonte não", async () => {
   const dir = await docSet({
-    "CLAUDE.md": [
-      CLAUDE_MINIMO,
+    "AGENTS.md": [
+      CONTRATO_MINIMO,
       "## Convenções",
       "",
       "- Slug NFD (decidido em 2026-07-13).",
@@ -438,8 +438,8 @@ test("H1: data e carimbo de rodada no corpo acendem; o marcador e a marca de fon
 
 test("H2: decisão resolvida que permanece acende; a linha não é acusada duas vezes por H1", async () => {
   const dir = await docSet({
-    "CLAUDE.md": [
-      CLAUDE_MINIMO,
+    "AGENTS.md": [
+      CONTRATO_MINIMO,
       "## Decisões em aberto",
       "",
       "- [x] **Formato** — resolvido: texto simples (rodada fase-1).",
@@ -453,8 +453,8 @@ test("H2: decisão resolvida que permanece acende; a linha não é acusada duas 
 
 test("H3: vocabulário narrativo acende e nomeia o termo encontrado", async () => {
   const dir = await docSet({
-    "CLAUDE.md": [
-      CLAUDE_MINIMO,
+    "AGENTS.md": [
+      CONTRATO_MINIMO,
       "## Convenções",
       "",
       "- Anteriormente o core decidia o exit code; hoje quem decide é a CLI.",
@@ -469,8 +469,8 @@ test("H3: vocabulário narrativo acende e nomeia o termo encontrado", async () =
 
 test("H4: fase com todos os checkboxes fechados acende; fase mista e fase vazia não", async () => {
   const dir = await docSet({
-    "CLAUDE.md": [
-      CLAUDE_MINIMO,
+    "AGENTS.md": [
+      CONTRATO_MINIMO,
       "## Estrutura",
       "",
       "```",
@@ -545,8 +545,8 @@ test("J1: a mesma decisão em dois arquivos acende nos dois e nomeia o outro", a
       decisao,
       "",
     ].join("\n"),
-    "CLAUDE.md": [
-      CLAUDE_MINIMO,
+    "AGENTS.md": [
+      CONTRATO_MINIMO,
       "## Decisões em aberto",
       "",
       // acento e caixa diferentes: a comparação é por chave normalizada
@@ -559,9 +559,9 @@ test("J1: a mesma decisão em dois arquivos acende nos dois e nomeia o outro", a
   assert.match(r.avisos[0].msg, /também aparece em SPEC\.md/);
 });
 
-test("J2: Stack com versão fora do CLAUDE acende; Stack sem versão é referência legítima", async () => {
-  const claude = [
-    CLAUDE_MINIMO,
+test("J2: Stack com versão fora do AGENTS acende; Stack sem versão é referência legítima", async () => {
+  const contrato = [
+    CONTRATO_MINIMO,
     "## Stack",
     "",
     "| Camada  | Tecnologia     |",
@@ -587,17 +587,17 @@ test("J2: Stack com versão fora do CLAUDE acende; Stack sem versão é referên
 
   const copia = await verificar(
     await docSet({
-      "CLAUDE.md": claude,
+      "AGENTS.md": contrato,
       "SPEC.md": spec("- **Node ≥ 20, ESM** — stdlib apenas."),
     }),
   );
   assert.deepEqual(avisos(copia), ["J2"]);
-  assert.match(copia.avisos[0].msg, /dono em CLAUDE\.md/);
+  assert.match(copia.avisos[0].msg, /dono em AGENTS\.md/);
 
   const referencia = await verificar(
     await docSet({
-      "CLAUDE.md": claude,
-      "SPEC.md": spec("- **Node, ESM** — stdlib apenas; versões no CLAUDE.md."),
+      "AGENTS.md": contrato,
+      "SPEC.md": spec("- **Node, ESM** — stdlib apenas; versões no AGENTS.md."),
     }),
   );
   assert.deepEqual(referencia.avisos, []);
@@ -605,8 +605,8 @@ test("J2: Stack com versão fora do CLAUDE acende; Stack sem versão é referên
 
 test("--strict promove H e J a violação; V1 (volume) nunca é promovida", async () => {
   const dir = await docSet({
-    "CLAUDE.md": [
-      CLAUDE_MINIMO,
+    "AGENTS.md": [
+      CONTRATO_MINIMO,
       "## Convenções",
       "",
       "- Slug NFD (decidido em 2026-07-13).",
@@ -631,7 +631,7 @@ test("--strict promove H e J a violação; V1 (volume) nunca é promovida", asyn
 test("E5: emoji acusa; árvore de pastas com box-drawing não", async () => {
   const comEmoji = await verificar(
     await docSet({
-      "CLAUDE.md": [CLAUDE_MINIMO, "## Convenções 🚀", "", "- Core puro.", ""].join("\n"),
+      "AGENTS.md": [CONTRATO_MINIMO, "## Convenções 🚀", "", "- Core puro.", ""].join("\n"),
     }),
   );
   assert.deepEqual(ids(comEmoji), ["E5"]);
@@ -642,8 +642,8 @@ test("E5: emoji acusa; árvore de pastas com box-drawing não", async () => {
   // emoji é notação: `↔` em "doc↔código" não é enfeite.
   const semDecoracao = await verificar(
     await docSet({
-      "CLAUDE.md": [
-        CLAUDE_MINIMO,
+      "AGENTS.md": [
+        CONTRATO_MINIMO,
         "## Convenções",
         "",
         "- Ancoragem doc↔código conferida no CI; exit ≥ 1 falha o build ✓.",
@@ -682,7 +682,7 @@ test("F3: cabeçalho que promete a seção Planejado sem ela existir acusa", asy
 
 test("C2: regra de ouro sem negrito acusa; a seção existir não basta", async () => {
   const dir = await docSet({
-    "CLAUDE.md": [
+    "AGENTS.md": [
       "# projeto",
       "",
       "> Contrato de como escrevemos código aqui.",
@@ -793,8 +793,8 @@ test("S1: a supressão vale só no arquivo em que está escrita", async () => {
       decisao,
       "",
     ].join("\n"),
-    "CLAUDE.md": [
-      CLAUDE_MINIMO,
+    "AGENTS.md": [
+      CONTRATO_MINIMO,
       "## Decisões em aberto",
       "",
       decisao,
@@ -802,9 +802,9 @@ test("S1: a supressão vale só no arquivo em que está escrita", async () => {
     ].join("\n"),
   });
   const r = await verificar(dir);
-  // suprimida no SPEC, ainda acusada no CLAUDE
+  // suprimida no SPEC, ainda acusada no AGENTS
   assert.deepEqual(avisosDe(r, "J"), ["J1"]);
-  assert.equal(r.avisos.find((a) => a.id === "J1").arquivo, "CLAUDE.md");
+  assert.equal(r.avisos.find((a) => a.id === "J1").arquivo, "AGENTS.md");
 });
 
 // --- D: DOMAIN.md (glossário e invariantes) ---
@@ -922,7 +922,7 @@ test("A0: ecossistema fora do alcance da ancoragem é declarado, não silenciado
 
 test("A1: pasta citada na árvore da Estrutura e ausente do disco acende", async () => {
   const dir = await copiaDoFixture({
-    "CLAUDE.md": (md) => md.replace("  check.js", "  parser.js"),
+    "AGENTS.md": (md) => md.replace("  check.js", "  parser.js"),
   });
   const r = await verificar(dir);
   assert.deepEqual(avisosDe(r, "A1"), ["A1"]);
@@ -931,7 +931,7 @@ test("A1: pasta citada na árvore da Estrutura e ausente do disco acende", async
 
 test("A2: comando de Como rodar ausente dos scripts do manifest acende", async () => {
   const dir = await copiaDoFixture({
-    "CLAUDE.md": (md) => md.replace("node --test             # testes", "npm run cobertura"),
+    "AGENTS.md": (md) => md.replace("node --test             # testes", "npm run cobertura"),
   });
   const r = await verificar(dir);
   assert.deepEqual(avisosDe(r, "A2"), ["A2"]);
@@ -940,7 +940,7 @@ test("A2: comando de Como rodar ausente dos scripts do manifest acende", async (
 
 test("A3: versão da tabela Stack divergente do engines do manifest acende", async () => {
   const dir = await copiaDoFixture({
-    "CLAUDE.md": (md) => md.replace("Node ≥ 20, ESM", "Node ≥ 18, ESM"),
+    "AGENTS.md": (md) => md.replace("Node ≥ 20, ESM", "Node ≥ 18, ESM"),
   });
   const r = await verificar(dir);
   assert.deepEqual(avisosDe(r, "A3"), ["A3"]);
@@ -949,10 +949,10 @@ test("A3: versão da tabela Stack divergente do engines do manifest acende", asy
 
 test("A5: caminho citado que não existe acende; caminho válido e placeholder não", async () => {
   const dir = await copiaDoFixture({
-    "CLAUDE.md": (md) =>
+    "AGENTS.md": (md) =>
       md.replace(
         "## Gaps conhecidos",
-        "Detalhe da borda em `docs/borda-http.md`; exemplo em `<pacote>/CLAUDE.md`.\n\n## Gaps conhecidos",
+        "Detalhe da borda em `docs/borda-http.md`; exemplo em `<pacote>/AGENTS.md`.\n\n## Gaps conhecidos",
       ),
   });
   const r = await verificar(dir);
@@ -963,7 +963,7 @@ test("A5: caminho citado que não existe acende; caminho válido e placeholder n
 
 test("A5: um atalho que é sufixo de um caminho do repositório resolve; um alias e uma variável não são caminhos", async () => {
   const dir = await copiaDoFixture({
-    "CLAUDE.md": (md) =>
+    "AGENTS.md": (md) =>
       md.replace(
         "## Gaps conhecidos",
         [
@@ -985,7 +985,7 @@ test("A5: um atalho que é sufixo de um caminho do repositório resolve; um alia
 
 test("A5: num repositório git o índice é o que o git enxerga — um arquivo ignorado não faz um atalho resolver", async () => {
   const dir = await copiaDoFixture({
-    "CLAUDE.md": (md) =>
+    "AGENTS.md": (md) =>
       md.replace(
         "## Gaps conhecidos",
         "Rastreado em `nested/util.js`; ignorado em `deep/out.js`; pasta em `nested/`.\n\n## Gaps conhecidos",
@@ -1006,7 +1006,7 @@ test("A5: num repositório git o índice é o que o git enxerga — um arquivo i
 
 test("A4: nome de env citado e ausente do .env.example acende; só nomes são lidos", async () => {
   const dir = await copiaDoFixture({
-    "CLAUDE.md": (md) =>
+    "AGENTS.md": (md) =>
       md.replace(
         "## Gaps conhecidos",
         [
@@ -1068,8 +1068,8 @@ test("A7: satélite em docs/ sem ponteiro no doc-set acende", async () => {
   assert.deepEqual(avisosDe(orfao, "A7"), ["A7"]);
   assert.match(orfao.avisos[0].msg, /nenhum documento do doc-set aponta/);
 
-  // com o ponteiro de volta no CLAUDE.md, o satélite deixa de ser órfão
-  const p = path.join(dir, "CLAUDE.md");
+  // com o ponteiro de volta no AGENTS.md, o satélite deixa de ser órfão
+  const p = path.join(dir, "AGENTS.md");
   await writeFile(
     p,
     (await readFile(p, "utf8")).replace(
@@ -1082,11 +1082,11 @@ test("A7: satélite em docs/ sem ponteiro no doc-set acende", async () => {
   assert.deepEqual(avisosDe(ligado, "A5"), []);
 });
 
-test("A8: CLAUDE.md de pacote que copia a regra de ouro do raiz acende", async () => {
+test("A8: AGENTS.md de pacote que copia a regra de ouro do raiz acende", async () => {
   const dir = await copiaDoFixture();
   await mkdir(path.join(dir, "packages", "core"), { recursive: true });
   await writeFile(
-    path.join(dir, "packages", "core", "CLAUDE.md"),
+    path.join(dir, "packages", "core", "AGENTS.md"),
     [
       "# core",
       "",
@@ -1121,7 +1121,7 @@ test("o doc-set com domínio exercita DOMAIN.md de ponta a ponta", async () => {
   assert.deepEqual(r.violacoes, []);
 });
 
-test("--estado devolve o estado que o hook e uma statusline consomem", async () => {
+test("--estado devolve o resumo que a skill e scripts consomem", async () => {
   const e = await estado(FIXTURE);
   assert.deepEqual(Object.keys(e).sort(), [
     "arquivos",
@@ -1202,12 +1202,12 @@ test("vários diretórios: panorama que pula o que não é doc-set", async () =>
   assert.match(nada, /nenhum doc-set encontrado/);
 });
 
-test("--json emite o contrato que o /docs:auditar consome", async () => {
+test("--json emite o contrato que o /docs auditar consome", async () => {
   // A forma desta saída é contrato: o comando lê JSON em vez de parsear texto.
   // Mudar um nome de campo aqui quebra o relatório sem quebrar nada visível.
   const dir = await docSet({
-    "CLAUDE.md": [
-      CLAUDE_MINIMO,
+    "AGENTS.md": [
+      CONTRATO_MINIMO,
       "## Nunca fazer",
       "",
       "- Nunca usar var.",
@@ -1261,8 +1261,8 @@ test("--json emite o contrato que o /docs:auditar consome", async () => {
 
 test('.docscheck.json com {"strict": true} promove como a flag; inválido é erro de uso', async () => {
   const doc = {
-    "CLAUDE.md": [
-      CLAUDE_MINIMO,
+    "AGENTS.md": [
+      CONTRATO_MINIMO,
       "## Convenções",
       "",
       "- Slug NFD (decidido em 2026-07-13).",
@@ -1455,7 +1455,7 @@ test("as referências numeradas dos comandos existem na gramática", async () =>
   const numeradas = new Set(
     [...secao2.matchAll(/^(\d+)\. \*\*/gm)].map((m) => m[1]),
   );
-  const dir = fileURLToPath(new URL("../commands/docs", import.meta.url));
+  const dir = fileURLToPath(new URL("../workflows", import.meta.url));
   const arquivos = (await readdir(dir)).filter((f) => f.endsWith(".md"));
   assert.ok(arquivos.length >= 5, "esperava os cinco comandos do ciclo");
   for (const nome of arquivos) {
@@ -1463,42 +1463,9 @@ test("as referências numeradas dos comandos existem na gramática", async () =>
     for (const m of md.matchAll(/\bregra (\d+)\b/g)) {
       assert.ok(
         numeradas.has(m[1]),
-        `commands/docs/${nome} cita a "regra ${m[1]}", inexistente na GRAMATICA`,
+        `workflows/${nome} cita a "regra ${m[1]}", inexistente na GRAMATICA`,
       );
     }
-  }
-});
-
-test("todo comando carrega a gramática antes de agir e para se ela faltar", async () => {
-  const dir = fileURLToPath(new URL("../commands/docs", import.meta.url));
-  for (const nome of (await readdir(dir)).filter((f) => f.endsWith(".md"))) {
-    const md = await readFile(path.join(dir, nome), "utf8");
-    assert.match(
-      md,
-      /~\/\.claude\/docs-kit\/GRAMATICA\.md/,
-      `commands/docs/${nome} não carrega o texto normativo`,
-    );
-    assert.match(
-      md,
-      /\*\*pare\*\*/,
-      `commands/docs/${nome} não declara o que fazer sem a gramática instalada`,
-    );
-  }
-});
-
-test("nenhum comando pré-autoriza Write ou Edit em allowed-tools", async () => {
-  const dir = fileURLToPath(new URL("../commands/docs", import.meta.url));
-  for (const nome of (await readdir(dir)).filter((f) => f.endsWith(".md"))) {
-    const md = await readFile(path.join(dir, nome), "utf8");
-    const fm = md.match(/^---\n([\s\S]*?)\n---/);
-    assert.ok(fm, `commands/docs/${nome} sem frontmatter`);
-    const linha = fm[1].match(/^allowed-tools:.*$/m);
-    assert.ok(linha, `commands/docs/${nome} sem allowed-tools`);
-    assert.doesNotMatch(
-      linha[0],
-      /\b(Write|Edit|MultiEdit|NotebookEdit)\b/,
-      `commands/docs/${nome} traz ferramenta de escrita em allowed-tools; a lista não deve pré-autorizar escritas`,
-    );
   }
 });
 
@@ -1509,7 +1476,7 @@ test('C3: uma proibição basta; seção vazia falha; seção ausente é válida
     ['\n## Nunca fazer\n\n- Nunca expor tokens — permite acesso indevido.\n', []],
     ['\n## Nunca fazer\n', ["C3"]],
   ]) {
-    const dir = await docSet({ 'CLAUDE.md': CLAUDE_MINIMO + corpo });
+    const dir = await docSet({ 'AGENTS.md': CONTRATO_MINIMO + corpo });
     t.after(() => rm(dir, { recursive: true, force: true }));
     assert.deepEqual(ids(await verificar(dir, { strict: true })), esperado);
   }
@@ -1517,7 +1484,7 @@ test('C3: uma proibição basta; seção vazia falha; seção ausente é válida
 
 test('C5: remover a seção de decisões não apaga a obrigação de declarar o estado', async (t) => {
   const dir = await docSet({
-    'CLAUDE.md': CLAUDE_MINIMO.replace(/## Decisões em aberto\n\nNenhuma pendente\.\n/, ''),
+    'AGENTS.md': CONTRATO_MINIMO.replace(/## Decisões em aberto\n\nNenhuma pendente\.\n/, ''),
   });
   t.after(() => rm(dir, { recursive: true, force: true }));
   assert.deepEqual(ids(await verificar(dir)), ['C5']);
@@ -1538,7 +1505,7 @@ test('F1: rejeita a fronteira invertida; distingue presente e primeira entrega',
 });
 
 test('H1: vigência exige efeito explícito; datas de registro continuam acusadas', async (t) => {
-  const dir = await docSet({ 'CLAUDE.md': CLAUDE_MINIMO + [
+  const dir = await docSet({ 'AGENTS.md': CONTRATO_MINIMO + [
     '', '## Convenções', '',
     '- Migrar o protocolo (vigência: até 2027-01-01 — endpoint será desativado).',
     '- Usar a API estável (fonte: docs oficiais API 2, jan/2026).',
@@ -1551,14 +1518,14 @@ test('H1: vigência exige efeito explícito; datas de registro continuam acusada
 });
 
 test('E1/E2/E5/A5: satélites aninhados e contratos locais recebem regras comuns', async (t) => {
-  const dir = await docSet({ 'CLAUDE.md': CLAUDE_MINIMO });
+  const dir = await docSet({ 'AGENTS.md': CONTRATO_MINIMO });
   t.after(() => rm(dir, { recursive: true, force: true }));
-  for (const nome of ['docs/area/guia.md', 'packages/core/CLAUDE.md']) {
+  for (const nome of ['docs/area/guia.md', 'packages/core/AGENTS.md']) {
     await mkdir(path.dirname(path.join(dir, nome)), { recursive: true });
     await writeFile(path.join(dir, nome), '# Guia\n\nTBD 🚀\n\nVeja `src/inexistente.js`.\n');
   }
   const r = await verificar(dir, { strict: true });
-  for (const nome of ['docs/area/guia.md', 'packages/core/CLAUDE.md']) {
+  for (const nome of ['docs/area/guia.md', 'packages/core/AGENTS.md']) {
     assert.deepEqual(r.violacoes.filter((a) => a.arquivo === nome).map((a) => a.id).sort(),
       ['A5', 'E1', 'E2', 'E5']);
     assert.ok(r.arquivos.includes(nome));
@@ -1566,10 +1533,10 @@ test('E1/E2/E5/A5: satélites aninhados e contratos locais recebem regras comuns
 });
 
 test('A5: links de satélites resolvem a partir do arquivo que os contém', async (t) => {
-  const dir = await docSet({ 'CLAUDE.md': CLAUDE_MINIMO + '\nLeia [guia](docs/guia.md).\n' });
+  const dir = await docSet({ 'AGENTS.md': CONTRATO_MINIMO + '\nLeia [guia](docs/guia.md).\n' });
   t.after(() => rm(dir, { recursive: true, force: true }));
   await mkdir(path.join(dir, 'docs'));
-  await writeFile(path.join(dir, 'docs/guia.md'), '# Guia\n\n> Referência.\n\nLeia [contrato](../CLAUDE.md).\n');
+  await writeFile(path.join(dir, 'docs/guia.md'), '# Guia\n\n> Referência.\n\nLeia [contrato](../AGENTS.md).\n');
   assert.deepEqual(ids(await verificar(dir, { strict: true })), []);
 });
 
@@ -1578,7 +1545,7 @@ test('A1: árvores simples e com conectores validam caminhos e hierarquia', asyn
     'src/\n  interno/\n    real.js\n  ausente.js\n',
     'src/\n├── interno/\n│   └── real.js\n└── ausente.js\n',
   ]) {
-    const dir = await docSet({ 'CLAUDE.md': CLAUDE_MINIMO + `\n## Estrutura\n\n\`\`\`\n${arvore}\`\`\`\n` });
+    const dir = await docSet({ 'AGENTS.md': CONTRATO_MINIMO + `\n## Estrutura\n\n\`\`\`\n${arvore}\`\`\`\n` });
     t.after(() => rm(dir, { recursive: true, force: true }));
     await mkdir(path.join(dir, 'src/interno'), { recursive: true });
     await writeFile(path.join(dir, 'src/interno/real.js'), '');
@@ -1589,7 +1556,7 @@ test('A1: árvores simples e com conectores validam caminhos e hierarquia', asyn
 });
 
 test('A5: arquivo removido do disco não resolve pelo índice Git, nem por sufixo', async (t) => {
-  const dir = await docSet({ 'CLAUDE.md': CLAUDE_MINIMO + '\nVeja `notes/alvo.txt` e `alvo-local/alvo.txt`.\n' });
+  const dir = await docSet({ 'AGENTS.md': CONTRATO_MINIMO + '\nVeja `notes/alvo.txt` e `alvo-local/alvo.txt`.\n' });
   t.after(() => rm(dir, { recursive: true, force: true }));
   for (const pasta of ['notes', 'packages/core/alvo-local']) {
     await mkdir(path.join(dir, pasta), { recursive: true });
@@ -1606,21 +1573,49 @@ test('A5: arquivo removido do disco não resolve pelo índice Git, nem por sufix
 });
 
 test("satélites e contratos por symlink não duplicam achados nem seguem diretórios externos", async (t) => {
-  const dir = await docSet({ "CLAUDE.md": CLAUDE_MINIMO });
+  const dir = await docSet({ "AGENTS.md": CONTRATO_MINIMO });
   const externo = await mkdtemp(path.join(tmpdir(), "docscheck-externo-"));
   t.after(() => rm(dir, { recursive: true, force: true }));
   t.after(() => rm(externo, { recursive: true, force: true }));
   await writeFile(path.join(externo, "guia.md"), "# Guia\n\nTBD 🚀\n");
   await symlink(externo, path.join(dir, "docs"));
   await mkdir(path.join(dir, "packages/core"), { recursive: true });
-  await symlink(path.join(dir, "CLAUDE.md"), path.join(dir, "packages/core/CLAUDE.md"));
+  await symlink(path.join(dir, "AGENTS.md"), path.join(dir, "packages/core/AGENTS.md"));
   let r = await verificar(dir, { strict: true });
   assert.deepEqual(ids(r), []);
-  assert.deepEqual(r.arquivos, ["CLAUDE.md"]);
+  assert.deepEqual(r.arquivos, ["AGENTS.md"]);
   await rm(path.join(dir, "docs"));
   await mkdir(path.join(dir, "docs"));
   await symlink(path.join(externo, "guia.md"), path.join(dir, "docs/guia.md"));
   r = await verificar(dir, { strict: true });
   assert.deepEqual(ids(r), []);
-  assert.deepEqual(r.arquivos, ["CLAUDE.md"]);
+  assert.deepEqual(r.arquivos, ["AGENTS.md"]);
+});
+
+test("A9: ponte comum e symlink leem o mesmo contrato; conteúdo independente ou alvo quebrado acusa", async (t) => {
+  const dir = await docSet({ "AGENTS.md": CONTRATO_MINIMO });
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  const ponte = path.join(dir, "CLAUDE.md");
+  assert.deepEqual(ids(await verificar(dir, { strict: true })), []);
+  await writeFile(ponte, "@AGENTS.md\n");
+  assert.deepEqual(ids(await verificar(dir, { strict: true })), []);
+  await writeFile(ponte, "@AGENTS.md\n\nRegra independente.\n");
+  assert.deepEqual(ids(await verificar(dir, { strict: true })), ["A9"]);
+  await rm(ponte);
+  await symlink("AGENTS.md", ponte);
+  assert.deepEqual(ids(await verificar(dir, { strict: true })), []);
+  await rm(ponte);
+  await symlink("ausente.md", ponte);
+  assert.deepEqual(ids(await verificar(dir, { strict: true })), ["A9"]);
+});
+
+test("A9: ponte de pacote não pode importar o contrato de outro diretório", async (t) => {
+  const dir = await docSet({ "AGENTS.md": CONTRATO_MINIMO });
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  await mkdir(path.join(dir, "packages/core"), { recursive: true });
+  await writeFile(path.join(dir, "packages/core/AGENTS.md"), "# Core\n\n> Regras locais.\n");
+  await writeFile(path.join(dir, "packages/core/CLAUDE.md"), "@../../AGENTS.md\n");
+  const r = await verificar(dir, { strict: true });
+  assert.deepEqual(ids(r), ["A9"]);
+  assert.equal(r.violacoes[0].arquivo, "packages/core/AGENTS.md");
 });

@@ -8,7 +8,7 @@
 ## Convenções
 
 - Cada task tem: um id (ex.: T1.1), o módulo responsável (coerente com a
-  estrutura do CLAUDE.md), os testes TDD que a definem e os critérios de
+  estrutura do AGENTS.md), os testes TDD que a definem e os critérios de
   aceitação.
 - Tarefa que sustenta uma lei do domínio cita o invariante pelo id `I<n>`
   (regra 10); o teste dela nomeia o mesmo id.

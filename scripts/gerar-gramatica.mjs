@@ -28,11 +28,11 @@ const DESTINOS = [
 
 // O mapa dá o **nome** de cada família; a **ordem** sai do catálogo, nunca
 // daqui. Duas listas de ordem divergem — e divergiram: a tabela do README saía
-// nesta ordem e a da gramática na do catálogo, com as mesmas 39 regras.
+// nesta ordem e a da gramática na do catálogo, com o mesmo catálogo.
 const NOMES = {
   E: "Estrutura comum",
   F: "Fronteira presente/futuro",
-  C: "Contrato (CLAUDE.md)",
+  C: "Contrato (AGENTS.md)",
   T: "Rastreabilidade cruzada",
   D: "Domínio",
   H: "Presente permanente",

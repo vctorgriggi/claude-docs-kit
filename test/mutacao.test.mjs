@@ -59,28 +59,30 @@ const CASOS = [
   ["F3", LINK, (d) =>
     editar(d, "SPEC.md", (s) => s.slice(0, s.indexOf("## Planejado")))],
 
+  ["A9", LINK, (d) => gravar(d, "CLAUDE.md", "@OUTRO.md\n")],
+
   ["C1", LINK, (d) =>
-    editar(d, "CLAUDE.md", (s) => s.replace("## Regra de ouro", "## Disciplina"))],
+    editar(d, "AGENTS.md", (s) => s.replace("## Regra de ouro", "## Disciplina"))],
   ["C2", LINK, (d) =>
-    editar(d, "CLAUDE.md", (s) =>
+    editar(d, "AGENTS.md", (s) =>
       s.replace(
         /\*\*Zero dependências de runtime[\s\S]*?Node\.\*\*/,
         "Zero dependências de runtime.",
       ))],
   ["C3", LINK, (d) =>
-    editar(d, "CLAUDE.md", (s) => {
+    editar(d, "AGENTS.md", (s) => {
       const i = s.indexOf("## Nunca fazer");
       const j = s.indexOf("## Gaps conhecidos");
       return s.slice(0, i) + "## Nunca fazer\n\n" + s.slice(j);
     })],
   ["C4", LINK, (d) =>
-    editar(d, "CLAUDE.md", (s) =>
+    editar(d, "AGENTS.md", (s) =>
       s.replace(
         /- Nunca adicionar dependência de runtime[^\n]*/,
         "- Nunca adicionar dependência de runtime.",
       ))],
   ["C5", LINK, (d) =>
-    editar(d, "CLAUDE.md", (s) =>
+    editar(d, "AGENTS.md", (s) =>
       s.replace(/## Decisões em aberto\n\nNenhuma pendente\./, "## Decisões em aberto\n"))],
 
   ["T1", LINK, (d) =>
@@ -104,13 +106,13 @@ const CASOS = [
       s.replace("- **Item** —", "- **Item** — o usuário clica em comprar e"))],
 
   ["H1", LINK, (d) =>
-    editar(d, "CLAUDE.md", (s) =>
+    editar(d, "AGENTS.md", (s) =>
       s.replace("## Convenções", "## Convenções\n\n- Slug NFD (decidido em 2026-07-13)."))],
   ["H2", LINK, (d) =>
-    editar(d, "CLAUDE.md", (s) =>
+    editar(d, "AGENTS.md", (s) =>
       s.replace("Nenhuma pendente.", "- [x] **Formato** — resolvido: texto simples."))],
   ["H3", LINK, (d) =>
-    editar(d, "CLAUDE.md", (s) =>
+    editar(d, "AGENTS.md", (s) =>
       s.replace("## Convenções", "## Convenções\n\n- Anteriormente o core decidia o exit code."))],
   ["H4", LINK, (d) =>
     editar(d, "PLAN.md", (s) => s.replace(/- \[ \] T2\./g, "- [x] T2."))],
@@ -132,22 +134,22 @@ const CASOS = [
     await gravar(d, "pyproject.toml", '[project]\nname = "linkcheck"\n');
   }],
   ["A1", LINK, (d) =>
-    editar(d, "CLAUDE.md", (s) => s.replace("  check.js", "  parser.js"))],
+    editar(d, "AGENTS.md", (s) => s.replace("  check.js", "  parser.js"))],
   ["A2", LINK, (d) =>
-    editar(d, "CLAUDE.md", (s) =>
+    editar(d, "AGENTS.md", (s) =>
       s.replace("node --test             # testes", "npm run cobertura"))],
   ["A3", LINK, (d) =>
-    editar(d, "CLAUDE.md", (s) => s.replace("Node ≥ 20, ESM", "Node ≥ 18, ESM"))],
+    editar(d, "AGENTS.md", (s) => s.replace("Node ≥ 20, ESM", "Node ≥ 18, ESM"))],
   ["A4", LINK, async (d) => {
     await gravar(d, ".env.example", "LINKCHECK_TIMEOUT=5000\n");
-    await editar(d, "CLAUDE.md", (s) =>
+    await editar(d, "AGENTS.md", (s) =>
       s.replace(
         "## Gaps conhecidos",
         "## Env e segredos\n\n- `LINKCHECK_UA` define o user-agent.\n\n## Gaps conhecidos",
       ));
   }],
   ["A5", LINK, (d) =>
-    editar(d, "CLAUDE.md", (s) =>
+    editar(d, "AGENTS.md", (s) =>
       s.replace("## Gaps conhecidos", "Ver `docs/borda-http.md`.\n\n## Gaps conhecidos"))],
   ["A6", LINK, async (d) => {
     const git = (...args) =>
@@ -170,7 +172,7 @@ const CASOS = [
     await mkdir(path.join(d, "packages/core"), { recursive: true });
     await gravar(
       d,
-      "packages/core/CLAUDE.md",
+      "packages/core/AGENTS.md",
       [
         "# core",
         "",
@@ -188,7 +190,7 @@ const CASOS = [
   ["S1", LINK, (d) =>
     editar(d, "SPEC.md", (s) =>
       s.replace("## Problema", "<!-- docscheck: ignore A3 -->\n\n## Problema"))],
-  ["V1", LINK, (d) => editar(d, "CLAUDE.md", (s) => s + recheio(220))],
+  ["V1", LINK, (d) => editar(d, "AGENTS.md", (s) => s + recheio(220))],
 ];
 
 test("todo caso de mutação faz a sua regra acusar", async () => {

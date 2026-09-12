@@ -1,26 +1,26 @@
-# Exemplo 5: /docs:rodada — fechar um marco convertendo, não acumulando
+# Exemplo 5: /docs rodada — fechar um marco convertendo, não acumulando
 
 Continuação do [exemplo 1](01-modo-a-cli-nova.md): a fase-1 do linkcheck foi
 implementada e a documentação precisa voltar a refletir o código. O estado
 final desta sessão é exatamente [`fixtures/linkcheck/`](fixtures/linkcheck/).
 Blockquotes em itálico são anotações; o resto é a sessão.
 
-O valor do `/docs:rodada` só aparece entre dois pontos no tempo: compare o que
+O valor do `/docs rodada` só aparece entre dois pontos no tempo: compare o que
 o exemplo 1 gerou com o que esta sessão entrega — e repare no que **sai** dos
 arquivos, não só no que entra.
 
 ---
 
-**Usuário:** `/docs:rodada fase-1`
+**Usuário:** `/docs rodada fase-1`
 
-**Agente:** [lê `~/.claude/docs-kit/GRAMATICA.md`; roda
-`node ~/.claude/bin/docscheck.mjs --json .`; lê CLAUDE.md, SPEC.md e PLAN.md]
+**Agente:** [lê `$DOCS_KIT/grammar/GRAMATICA.md`; roda
+`node "$DOCS_KIT/bin/docscheck.mjs" --json .`; lê AGENTS.md, SPEC.md e PLAN.md]
 
 O PLAN não tem marcador de rodada — esta é a primeira. Janela levantada com
 `git log --oneline` desde o commit inicial; a partir daqui ela passa a ser
 determinística, porque o fecho desta sessão carimba o marcador.
 
-> _O marcador é carimbado pelo `/docs:rodada`, não pelo `/docs:fundar`: só
+> _O marcador é carimbado pelo `/docs rodada`, não pelo `/docs fundar`: só
 > existe marco depois que houve implementação para fechar._
 
 Commits na janela: `t0.1: parser de links`, `t0.2: validação de alvos + slug`,
@@ -37,7 +37,7 @@ O que preciso que você confirme:
 
 1. Âncoras estavam em "Planejado" no SPEC e aparecem implementadas
    (`anchors: ...`) — antecipação deliberada?
-2. A normalização NFD no slug: convenção para registrar no CLAUDE.md?
+2. A normalização NFD no slug: convenção para registrar no AGENTS.md?
 3. Houve corte, adiamento ou decisão que não aparece no código?
 
 > _A rodada não assume: o commit prova o quê, o usuário confirma o porquê. Só
@@ -55,9 +55,9 @@ um agente age daqui em diante?":
 
 | fato | muda? | vira |
 | --- | --- | --- |
-| slug precisa de NFD | sim | convenção no CLAUDE.md, com o porquê na linha |
+| slug precisa de NFD | sim | convenção no AGENTS.md, com o porquê na linha |
 | heading HTML não é detectado | sim | gap G1, com o paliativo que você disse |
-| relatório é texto simples; JSON adiado | sim | convenção no CLAUDE.md + "Fora do escopo" no SPEC |
+| relatório é texto simples; JSON adiado | sim | convenção no AGENTS.md + "Fora do escopo" no SPEC |
 | âncoras saíram baratas depois do T0.2 | **não** | nada — não muda nenhuma decisão futura |
 | fases 0 e 1 fecharam | **não** | nada; o que elas construíram já está no SPEC |
 
@@ -75,7 +75,7 @@ Atualizo, com seu OK:
 - **PLAN.md** — as fases 0 e 1 **saem do arquivo**, substituídas por uma linha
   de orientação; a Fase 2 (links externos) ganha detalhe por tarefa, porque
   virou a corrente (rolling wave).
-- **CLAUDE.md** — convenção do slug; convenção do formato de relatório; G1 em
+- **AGENTS.md** — convenção do slug; convenção do formato de relatório; G1 em
   "Gaps conhecidos"; a decisão "Formato do relatório" **sai** da lista de
   pendentes, e a seção passa a declarar "Nenhuma pendente."
 
@@ -111,7 +111,7 @@ SPEC descreve como atual.
 ...
 ```
 
-CLAUDE.md — a decisão resolvida não vira `[x]`; ela vira o que produziu:
+AGENTS.md — a decisão resolvida não vira `[x]`; ela vira o que produziu:
 
 ```
 ## Convenções
@@ -145,9 +145,9 @@ Resumo:
   escopo".
 - **PLAN** — fases 0 e 1 removidas (4 tarefas fechadas); Fase 2 detalhada;
   risco de rede na suíte adicionado.
-- **CLAUDE** — 2 convenções novas; G1 registrado.
+- **AGENTS** — 2 convenções novas; G1 registrado.
 - **Decisão resolvida** — "Formato do relatório" → convenção em
-  CLAUDE §Convenções + exclusão em SPEC §Fora do escopo.
+  AGENTS §Convenções + exclusão em SPEC §Fora do escopo.
 - **Saiu** — 2 fases concluídas e 1 nota de desvio.
 - Em aberto: nada pendente.
 

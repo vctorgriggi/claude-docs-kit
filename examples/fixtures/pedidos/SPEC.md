@@ -55,7 +55,7 @@ faz I/O, lê relógio ou imprime.
 ## Stack
 
 - **Node, ESM** — stdlib apenas; testes com `node:test`. As versões mínimas
-  vivem na tabela de Stack do CLAUDE.md.
+  vivem na tabela de Stack do AGENTS.md.
 
 ## Constraints técnicas
 

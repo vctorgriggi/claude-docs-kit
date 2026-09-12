@@ -8,7 +8,7 @@
 ## Convenções
 
 - Cada task tem: um id (ex.: T2.1), o módulo responsável (coerente com a
-  estrutura do CLAUDE.md), <"os testes TDD que a definem" | "a verificação que
+  estrutura do AGENTS.md), <"os testes TDD que a definem" | "a verificação que
   a define"> e os critérios de aceitação.
 - Uma fase só começa quando todos os checkboxes da anterior estão marcados,
   exceto fases marcadas como opcionais, que podem ser puladas.
@@ -17,7 +17,7 @@
 - <Regras transversais do projeto: "toda borda entra atrás de um protocolo
   mockável", "i18n é fundação transversal", etc.>
 - Desvio de execução não vira nota permanente: ou ensinou uma convenção — e
-  ela vai para o CLAUDE.md — ou sai junto com a fase (regra 2).
+  ela vai para o AGENTS.md — ou sai junto com a fase (regra 2).
 - Fase com todos os checkboxes fechados sai deste arquivo na rodada que a
   fecha; o que ela construiu passa a ser descrito no SPEC, no presente.
 

@@ -2,7 +2,7 @@
 
 > O vocabulário e as leis do <domínio>. Define o que cada termo significa e o
 > que nunca pode ser verdade no sistema. Comportamento de feature vive no
-> SPEC.md; como o código é escrito, no CLAUDE.md.
+> SPEC.md; como o código é escrito, no AGENTS.md.
 
 ## Glossário
 

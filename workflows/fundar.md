@@ -1,18 +1,4 @@
----
-description: Funda a documentação-de-agente do projeto (SPEC, PLAN, CLAUDE, DOMAIN e satélites). Entrevista o usuário em projeto novo; varre o repositório em projeto existente. Nada é escrito antes do aval.
-argument-hint: [novo|existente] [contexto adicional em texto livre]
-# Write/Edit não são pré-autorizados por este comando. A configuração da
-# sessão governa a permissão efetiva; o aval conversacional é uma instrução.
-# WebFetch/WebSearch servem à pesquisa de stack (§2) e a nomear a recomendação
-# vigente numa decisão em aberto (§3.3): docs oficiais da versão declarada,
-# nunca fonte de intenção.
-allowed-tools: Read, Glob, Grep, WebFetch, WebSearch, Bash(git log:*), Bash(git tag:*), Bash(git branch:*), Bash(git remote:*), Bash(ls:*), Bash(tree:*), Bash(cat:*), Bash(head:*), Bash(wc:*), Bash(node ~/.claude/bin/docscheck.mjs:*)
-disable-model-invocation: true
----
-
-# /docs:fundar
-
-Contexto passado na chamada (pode estar vazio): $ARGUMENTS
+# docs fundar
 
 Sua tarefa é montar (ou completar) o sistema de documentação deste projeto. O
 resultado são arquivos que futuras sessões de agente leem antes de trabalhar no
@@ -23,8 +9,8 @@ gramática abaixo mesmo quando ela contrariar seu hábito de formatação.
 
 ## 0. Carregue a gramática
 
-Antes de qualquer coisa, leia `~/.claude/docs-kit/GRAMATICA.md` (expanda `~`
-para o seu diretório home; `Read` exige caminho absoluto). Ele é o texto
+Leia a gramática em `$DOCS_KIT/grammar/GRAMATICA.md`, se ainda não estiver
+carregada nesta invocação. Ela é o texto
 normativo: papéis dos arquivos (GRAMATICA §1), regras invioláveis
 (GRAMATICA §2), registro do interlocutor (GRAMATICA §3), marcador de rodada
 (GRAMATICA §4) e os invariantes mecânicos que o `docscheck` verifica
@@ -35,15 +21,15 @@ apontam para o texto normativo; **"§N"** sozinho aponta para uma seção deste
 comando.
 
 Se o arquivo não existir, **pare**: diga ao usuário que a gramática não está
-instalada e que `./install.sh` no repositório do kit resolve. Não improvise as
-regras de memória — a fonte única existe justamente para que nenhum comando
+disponível na raiz da skill e que a instalação precisa ser restaurada.
+Não improvise as regras de memória — a fonte única existe justamente para que nenhum comando
 carregue uma paráfrase que envelhece sozinha.
 
 ---
 
 ## 1. Detecte o modo
 
-1. Se `$ARGUMENTS` começa com `novo` ou `existente`, use esse modo; o resto do
+1. Se o contexto da solicitação começar com `novo` ou `existente`, use esse modo; o resto do
    texto é contexto inicial (não pergunte o que ele já responde).
 2. Caso contrário, examine o diretório atual. Existe código ou manifest
    (`package.json`, `pyproject.toml`, `Package.swift`, `Cargo.toml`, `go.mod`,
@@ -52,8 +38,10 @@ carregue uma paráfrase que envelhece sozinha.
 3. Em caso ambíguo (por exemplo, apenas protótipos soltos), pergunte em uma
    linha qual modo usar.
 
-Em qualquer modo: se já existirem CLAUDE.md, SPEC.md, PLAN.md ou AGENTS.md, não
-sobrescreva nada antes do passo sobre documentação existente (§3.4).
+Em qualquer modo: se já existirem AGENTS.md, SPEC.md, PLAN.md ou CLAUDE.md, não
+sobrescreva nada antes do passo sobre documentação existente (§3.4). Na migração,
+consolide as instruções úteis em AGENTS.md antes de reduzir CLAUDE.md à ponte
+`@AGENTS.md`; mostre essa troca no diff. Faça o mesmo nos contratos de pacote.
 
 ---
 
@@ -61,7 +49,7 @@ sobrescreva nada antes do passo sobre documentação existente (§3.4).
 
 Não gere nada imediatamente. Entreviste primeiro, em blocos curtos: um bloco
 por mensagem, com 2 a 4 perguntas numeradas, respondíveis em uma única resposta.
-Pule perguntas já respondidas em `$ARGUMENTS` ou na conversa; funda blocos
+Pule perguntas já respondidas no contexto da solicitação ou na conversa; funda blocos
 quando o usuário responder além do perguntado.
 
 Abra anunciando a forma, em uma frase: "São 4 blocos curtos de perguntas; ao
@@ -81,7 +69,7 @@ Regras da entrevista:
   completude.
 - **Atalho (opt-out).** Se o usuário disser "Go" ou "Prosseguir", encerre as
   perguntas e vá à Proposta. Bloco não respondido não vira premissa: o que
-  for deduzível de `$ARGUMENTS` entra; o resto entra na Proposta como
+  for deduzível do contexto da solicitação entra; o resto entra na Proposta como
   "Decisões em aberto (a confirmar)" sinalizadas. A regra "intenção não se
   infere" (§3.3) continua valendo, e o aval da Proposta permanece obrigatório
   (regra 14).
@@ -123,7 +111,7 @@ com "Go" ou "Prosseguir", apresente uma proposta parcial com as lacunas como
 pendências, sem inventar regra de ouro; o aval da proposta continua necessário.
 
 **Pesquisa de stack (antes da Proposta).** Com a stack e as versões declaradas
-no Bloco 3, consulte a documentação oficial dessa versão (WebFetch/WebSearch —
+no Bloco 3, consulte a documentação oficial dessa versão (ferramentas de pesquisa disponíveis —
 docs oficiais, não blogs) atrás de duas coisas: (a) **pontos de escolha**,
 onde o ecossistema aceita mais de um caminho válido (estrutura de pastas,
 gerência de estado, roteamento, estilo de teste) — sem escolha registrada,
@@ -134,7 +122,7 @@ da sessão. O teste de deleção governa o filtro: princípio que qualquer sess�
 já aplicaria sozinha ("nomes idiomáticos", "escreva testes") não entra; entra
 a escolha entre alternativas e o desvio deliberado do padrão. Projeto de
 stdlib pura ou sem pontos de escolha reais: pule a pesquisa e diga isso na
-Proposta (regra 11). Sem WebFetch/WebSearch disponíveis, os pontos de escolha
+Proposta (regra 11). Sem ferramentas de pesquisa disponíveis, os pontos de escolha
 viram decisões em aberto.
 
 **Proposta.** Antes de escrever qualquer arquivo, apresente em uma única
@@ -149,8 +137,8 @@ mensagem:
   ou listadas como decisões em aberto.
 
 Peça aprovação ou ajustes. Com o OK, gere nesta ordem: SPEC, depois PLAN,
-depois CLAUDE, depois satélites. A ordem importa: o PLAN deriva do SPEC e o
-CLAUDE.md referencia os dois. Use os templates do §5.
+depois AGENTS, sua ponte CLAUDE.md e os satélites. O PLAN deriva do SPEC;
+o AGENTS.md referencia os dois. Use os templates do §5.
 
 ---
 
@@ -165,7 +153,7 @@ Leia, nesta ordem, anotando evidências:
    `go.mod`, `Gemfile`, `*.xcodeproj`).
 2. **Árvore de pastas**: até 3 níveis, ignorando `node_modules`, `.git` e
    diretórios de build. Identifique as áreas do projeto (apps, pacotes,
-   camadas); elas viram as seções do CLAUDE.md.
+   camadas); elas viram as seções do AGENTS.md.
 3. **Configs**: tsconfig (paths viram a tabela de aliases), lint, format, test,
    CI, docker, `.env.example` (apenas nomes de variáveis, nunca valores).
 4. **Documentação existente**: README*, CLAUDE*, AGENTS*, SPEC*, PLAN\*, docs/ e
@@ -245,8 +233,8 @@ escolha:
 
 ### 3.5 Geração
 
-Com o relatório validado, gere na mesma ordem do Modo A (SPEC, PLAN, CLAUDE,
-satélites).
+Com o relatório validado, gere na mesma ordem do Modo A (SPEC, PLAN, AGENTS,
+ponte CLAUDE.md e satélites).
 
 O PLAN de projeto existente **nasce sem passado**: o que já foi construído é
 descrito pelo SPEC, no presente, e não vira uma "Fase 0" de tarefas marcadas
@@ -267,23 +255,23 @@ do escopo". Nunca como cronologia.
 | Arquivo                                           | Gerar quando                                                                                                   | Não gerar quando                                   |
 | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
 | `SPEC.md`                                         | Sempre                                                                                                         | —                                                  |
-| `CLAUDE.md`                                       | Sempre                                                                                                         | —                                                  |
+| `AGENTS.md`                                       | Sempre                                                                                                         | —                                                  |
 | `PLAN.md`                                         | Há trabalho à frente que se beneficia de ordem                                                                 | Projeto em manutenção sem backlog estruturado      |
 | `DOMAIN.md`                                       | O domínio tem vocabulário próprio (5+ termos que um dev novo erraria) ou leis que o código não declara sozinho | CRUD sem regra de negócio; ferramenta de infra     |
 | `ROADMAP.md`                                      | Repositório público/OSS ou ambições reais além do SPEC                                                         | A única motivação for completar o conjunto         |
-| `docs/<tema>.md`                                  | Um tema acumulou conhecimento caro (spike, API frágil, pesquisa) que não cabe inline, ou uma seção de área do CLAUDE.md passou de ~meia página (extração, regra 11) | O conteúdo ainda cabe em um parêntese do CLAUDE.md |
+| `docs/<tema>.md`                                  | Um tema acumulou conhecimento caro (spike, API frágil, pesquisa) que não cabe inline, ou uma seção de área do AGENTS.md passou de ~meia página (extração, regra 11) | O conteúdo ainda cabe em um parêntese do AGENTS.md |
 | `docs/README.md`                                  | `docs/` passou de cerca de 3 arquivos                                                                          | docs/ vazio                                        |
-| `<pacote>/CLAUDE.md`                              | Monorepo em que um pacote tem recipe própria (como adicionar um recurso ali)                                   | O CLAUDE.md raiz já cobre                          |
-| `AGENTS.md`                                       | Outros agentes além do Claude Code atuam no repositório (espelho curto apontando para o CLAUDE.md, ou symlink) | Apenas Claude Code                                 |
+| `<pacote>/AGENTS.md`                              | Monorepo em que um pacote tem recipe própria (como adicionar um recurso ali)                                   | O AGENTS.md raiz já cobre                          |
+| `CLAUDE.md` | Junto de cada AGENTS.md (raiz ou pacote), somente a linha `@AGENTS.md` | O contrato canônico ainda não existe |
 | `CONTRIBUTING.md`                                 | OSS que aceita contribuição                                                                                    | Projeto pessoal ou fechado                         |
-| Inventário "Gaps conhecidos" (seção no CLAUDE.md) | Existem dívidas deliberadas confirmadas                                                                        | Não invente gaps para justificar a seção           |
+| Inventário "Gaps conhecidos" (seção no AGENTS.md) | Existem dívidas deliberadas confirmadas                                                                        | Não invente gaps para justificar a seção           |
 
 ---
 
 ## 5. Templates
 
-Os templates vivem em `~/.claude/docs-kit/templates/<ARQUIVO>` — um por
-documento da paleta (SPEC.md, PLAN.md, CLAUDE.md, DOMAIN.md, ROADMAP.md).
+Os templates vivem em `$DOCS_KIT/templates/<ARQUIVO>` — um por
+documento da paleta (SPEC.md, PLAN.md, AGENTS.md, DOMAIN.md, ROADMAP.md).
 
 **Leia o template no momento de gerar aquele arquivo, um de cada vez.** Não
 carregue os cinco de uma vez: o que não vai ser escrito agora só ocupa
@@ -302,8 +290,8 @@ a letra.
 1. Escreva os arquivos aprovados.
 2. **Checagens de entrega.** Re-aplique os invariantes ao que foi escrito, em
    duas camadas:
-   - **Mecânicas.** Se `~/.claude/bin/docscheck.mjs` existir, rode
-     `node ~/.claude/bin/docscheck.mjs .`; `--explain <id>` imprime o porquê e
+   - **Mecânicas.** Se `$DOCS_KIT/bin/docscheck.mjs` existir, rode
+     `node "$DOCS_KIT/bin/docscheck.mjs" .`; `--explain <id>` imprime o porquê e
      os exemplos de qualquer regra acusada. Sem o script, confira à mão a
      tabela de GRAMATICA §5 — ela lista cada invariante mecânico com id, alvo
      e severidade. Não reproduza a lista aqui: ela muda, e cópia
@@ -314,8 +302,8 @@ a letra.
      Qualquer falha exige reparo ou uma linha de justificativa no resumo.
 3. Feche com um resumo compacto: cada arquivo criado, seu papel em meia linha e
    o que ficou registrado como decisão em aberto nele.
-4. Encaminhe o ciclo em duas linhas: `/docs:tarefa <id>` monta o briefing de
-   uma tarefa do PLAN antes de implementar, e `/docs:decidir` registra uma
+4. Encaminhe o ciclo em duas linhas: `docs tarefa <id>` monta o briefing de
+   uma tarefa do PLAN antes de implementar, e `docs decidir` registra uma
    convenção no momento em que ela é decidida. Ao fechar o marco,
-   `/docs:rodada <nome>` sincroniza; `/docs:auditar` diz a qualquer momento,
+   `docs rodada <nome>` sincroniza; `docs auditar` diz a qualquer momento,
    sem escrever nada, se os documentos ainda descrevem o código.

@@ -1,4 +1,4 @@
-# Exemplo 4: /docs:auditar — o relatório de drift, sem escrever nada
+# Exemplo 4: /docs auditar — o relatório de drift, sem escrever nada
 
 Sessão sobre [`fixtures/linkcheck/`](fixtures/linkcheck/) **depois de um mês de
 código sem rodada**. Blockquotes em itálico são anotações; o resto é a sessão.
@@ -15,13 +15,13 @@ aconteceu, e ninguém sabe o tamanho do buraco.
 
 ---
 
-**Usuário:** `/docs:auditar`
+**Usuário:** `/docs auditar`
 
-**Agente:** [lê `~/.claude/docs-kit/GRAMATICA.md`; roda
-`node ~/.claude/bin/docscheck.mjs --json .`; lê SPEC, PLAN, CLAUDE; amostra
+**Agente:** [lê `$DOCS_KIT/grammar/GRAMATICA.md`; roda
+`node "$DOCS_KIT/bin/docscheck.mjs" --json .`; lê SPEC, PLAN, AGENTS; amostra
 `src/check.js` e `src/cli.js`]
 
-**[CRÍTICO]** `CLAUDE.md:12` — a regra de ouro declara **core puro: `check.js`
+**[CRÍTICO]** `AGENTS.md:12` — a regra de ouro declara **core puro: `check.js`
 não chama `process.exit`**, e `src/check.js:38` chama `process.exit(2)`. Um
 agente que ler o contrato vai assumir que pode testar o core sem subprocess, e
 a suíte vai morrer no meio.
@@ -36,12 +36,12 @@ presente.
 → remediação: mover para o corpo do SPEC, no presente, e tirar de "Fora do
 escopo"; o critério de aceitação do formato precisa de uma linha nova.
 
-**[ALTO]** `CLAUDE.md` §Convenções — o `--json` introduziu um serializador e
+**[ALTO]** `AGENTS.md` §Convenções — o `--json` introduziu um serializador e
 nenhuma convenção diz como o erro serializa. A convenção "Erros de uso saem
 pela `cli.js` com exit 2" não cobre o caso JSON.
-→ remediação: registrar a convenção com `/docs:decidir`, ou na rodada.
+→ remediação: registrar a convenção com `/docs decidir`, ou na rodada.
 
-**[MÉDIO]** `CLAUDE.md:21` (`A3`) — a tabela de Stack declara `Node ≥ 20`; o
+**[MÉDIO]** `AGENTS.md:21` (`A3`) — a tabela de Stack declara `Node ≥ 20`; o
 `package.json` exige `>=22`. Um agente vai escolher API pela versão errada.
 
 **[MÉDIO]** `PLAN.md:61` (`A6`) — 41 commits desde a última rodada
@@ -60,15 +60,15 @@ existe.
 **Remediação, na ordem em que faria sentido:**
 
 1. Decidir o `process.exit` no core: é bug ou é a regra de ouro que mudou? A
-   resposta muda o SPEC, não só o CLAUDE. (Só você decide — o código não diz
+   resposta muda o SPEC, não só o AGENTS. (Só você decide — o código não diz
    qual dos dois foi intenção.)
-2. `/docs:rodada json` — move o JSON de "Fora do escopo" para o corpo, fecha a
+2. `/docs rodada json` — move o JSON de "Fora do escopo" para o corpo, fecha a
    Fase 2, corrige a Stack e carimba o marcador novo.
 3. A convenção de serialização de erro entra na mesma rodada, ou antes com
-   `/docs:decidir`.
+   `/docs decidir`.
 
-Nada disto foi aplicado. `/docs:rodada <nome>` executa com aval;
-`/docs:decidir` registra uma decisão isolada.
+Nada disto foi aplicado. `/docs rodada <nome>` executa com aval;
+`/docs decidir` registra uma decisão isolada.
 
 > _Duas camadas em um relatório. `A3`, `A6` e `H4` vieram do `docscheck` — são
 > mecânicas, rodam no CI e não precisam de mim. Os dois CRÍTICOS não: exigem

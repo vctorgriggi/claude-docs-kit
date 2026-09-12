@@ -7,7 +7,7 @@
 ## Convenções
 
 - Cada task tem: um id (ex.: T2.1), o módulo responsável (coerente com a
-  estrutura do CLAUDE.md), os testes TDD que a definem e os critérios de
+  estrutura do AGENTS.md), os testes TDD que a definem e os critérios de
   aceitação.
 - Uma fase só começa quando todos os checkboxes da anterior estão marcados.
 - Detalhe por tarefa: fase corrente e próxima; fases além ficam com objetivo
@@ -49,7 +49,7 @@ As tarefas são detalhadas na rodada que fechar a Fase 2 (regra 11).
 ## Riscos e dependências
 
 - **Falso negativo em âncora de heading HTML inline** (SPEC, constraint 1 —
-  sem parser HTML na stdlib) → aceito como gap conhecido G1 (CLAUDE.md);
+  sem parser HTML na stdlib) → aceito como gap conhecido G1 (AGENTS.md);
   plano B: parser mínimo de heading, se aparecer caso real.
 - **Rede dentro da suíte de testes** (SPEC, constraint 1) → mitigado por T2.2,
   que injeta o fetcher; plano B: a verificação HTTP vira smoke manual.
