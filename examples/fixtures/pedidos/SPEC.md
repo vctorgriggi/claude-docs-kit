@@ -2,7 +2,7 @@
 
 > Descreve o **pedidos atual** — biblioteca que guarda o ciclo de vida e a
 > aritmética de um pedido. O que foi planejado mas ainda não implementado está
-> na seção final "Planejado / não implementado" — nada fora dela deve ser lido
+> na seção final "Planejado / não implementado" — nada nela deve ser lido
 > como já existente.
 
 ## Problema

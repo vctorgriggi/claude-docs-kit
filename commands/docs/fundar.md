@@ -1,8 +1,8 @@
 ---
 description: Funda a documentação-de-agente do projeto (SPEC, PLAN, CLAUDE, DOMAIN e satélites). Entrevista o usuário em projeto novo; varre o repositório em projeto existente. Nada é escrito antes do aval.
 argument-hint: [novo|existente] [contexto adicional em texto livre]
-# Write/Edit ausentes de propósito: cada escrita passa pelo prompt de permissão
-# do harness — um segundo gate além do aval conversacional (regra 14).
+# Write/Edit não são pré-autorizados por este comando. A configuração da
+# sessão governa a permissão efetiva; o aval conversacional é uma instrução.
 # WebFetch/WebSearch servem à pesquisa de stack (§2) e a nomear a recomendação
 # vigente numa decisão em aberto (§3.3): docs oficiais da versão declarada,
 # nunca fonte de intenção.
@@ -117,8 +117,10 @@ em descoberta | refinando | pronto para propor". Antes da Proposta, o ledger
 em uma linha: "Cobertura — 0 Regra-de-ouro candidata: <frase | ainda não> ·
 1 Problema/usuários: <resumo> · 2 Recorte da Fase 1: <frase> · 3
 Stack/segredos: <resumo> · 4 Disciplina/critérios: <resumo>". "Pronto" exige
-a linha 0 formulada em uma frase e nenhum item raso; faltando, volte ao bloco
-correspondente em vez de propor.
+a linha 0 formulada em uma frase e nenhum item raso. Sem o atalho, volte ao
+bloco correspondente quando faltar informação. O opt-out tem precedência:
+com "Go" ou "Prosseguir", apresente uma proposta parcial com as lacunas como
+pendências, sem inventar regra de ouro; o aval da proposta continua necessário.
 
 **Pesquisa de stack (antes da Proposta).** Com a stack e as versões declaradas
 no Bloco 3, consulte a documentação oficial dessa versão (WebFetch/WebSearch —
@@ -213,17 +215,21 @@ Termine com: "Com seu OK (e correções), eu gero os arquivos."
 - **Fonte contra fonte.** Quando duas fontes que deveriam concordar divergem
   (manifest declara workspace ou alias ausente na árvore; lockfile fora do
   manifest; duas áreas com convenções opostas), o comportamento que o código
-  executa vence a declaração. Registre a divergência como fato (Observado) e
-  proponha decisão em aberto ("X declara Y, mas o código faz Z; alinhar?").
-  Nunca resolva o conflito silenciosamente.
+  executa comprova o comportamento observado, mas não decide o requisito.
+  Classifique a divergência como documento desatualizado, bug de implementação
+  ou mudança deliberada de requisito. Sem evidência para classificar, proponha
+  decisão em aberto. Preserve contratos vigentes enquanto a divergência não
+  for resolvida; nunca transforme um bug em convenção.
 - **Pedido contra a evidência.** Se o usuário pedir uma afirmação que a
   evidência do código contradiz (uma regra de ouro que o código desmente),
   nomeie a contradição em uma frase e ofereça as saídas coerentes: documentar
   o comportamento real; registrar a intenção como decisão em aberto ou gap
   conhecido; ou confirmar que a mudança de código acontece fora desta tarefa.
   Não escreva o documento contra a evidência.
-- **Critérios de aceitação de código existente** descrevem o comportamento real
-  verificado, não o comportamento ideal.
+- **Critérios de aceitação de código existente** preservam requisitos vigentes.
+  Registre separadamente o comportamento observado e os critérios não atendidos.
+  Quando não houver requisito documentado, proponha critérios baseados na
+  evidência para validação do usuário; comportamento observado não é aprovação.
 
 ### 3.4 Documentação existente
 
@@ -233,8 +239,9 @@ escolha:
 1. **Auditar e atualizar** os documentos existentes contra o código (a
    divergência vira um diff proposto);
 2. **Completar** apenas os faltantes, respeitando os que existem;
-3. **Migrar** para a gramática da casa, preservando todo o conteúdo (mostre o
-   mapeamento antes de executar).
+3. **Migrar** para a gramática da casa, preservando requisitos e conhecimento
+   útil. Mostre o mapeamento, as conversões e as remoções propostas antes de
+   executar; cronologia sem efeito atual não precisa permanecer.
 
 ### 3.5 Geração
 

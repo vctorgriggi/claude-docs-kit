@@ -2,8 +2,8 @@
 
 > Descreve o **tarifa atual** — núcleo de cálculo e CLI, publicados como dois
 > pacotes de um monorepo. O que foi planejado mas ainda não implementado está
-> na seção final "Planejado / não implementado (roadmap futuro)" — nada fora
-> dela deve ser lido como já existente.
+> na seção final "Planejado / não implementado (roadmap futuro)" — nada nela
+> deve ser lido como já existente.
 
 ## Problema
 

@@ -21,7 +21,7 @@ Com o [hook de `SessionStart`](../README.md#o-estado-chegar-ate-voce-em-vez-de-e
 ligado, você não pergunta nada. A sessão abre já sabendo:
 
 ```
-Documentação-de-agente deste repositório (gramática v5, arquivos: SPEC.md,
+Documentação-de-agente deste repositório (gramática v6, arquivos: SPEC.md,
 PLAN.md, CLAUDE.md). Fase 2 — Links externos (HTTP) — 3 aberta(s) (T2.1, T2.2,
 T2.3) · 1 decisão(ões) pendente(s): Timeout padrão dos links externos ·
 docscheck limpo.
@@ -121,9 +121,10 @@ node .github/docscheck.mjs --strict .
 $ docscheck ~/Workspaces/*
 linkcheck  ok
 monorepo   ok
-notas-api  2 violação(ões)
+notas-api  3 violação(ões)
              CLAUDE.md:1 [E1] sem blockquote de papel logo abaixo do título (§1)
              CLAUDE.md:1 [C1] sem seção "Regra de ouro" (regra 3)
+             CLAUDE.md:1 [C5] declare "Decisões em aberto" com pendências ou "Nenhuma pendente." (regra 6)
 pedidos    ok
 
 resumo: 1 de 4 doc-set(s) com violação

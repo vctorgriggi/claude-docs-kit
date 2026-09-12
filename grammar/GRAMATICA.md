@@ -5,7 +5,7 @@
 > `docscheck` verifica. Os comandos leem este arquivo no início de cada
 > invocação — é a fonte única da gramática, e nenhum comando a parafraseia.
 
-Versão da gramática: v5. Incremente a cada mudança de convenção; a constante
+Versão da gramática: v6. Incremente a cada mudança de convenção; a constante
 `GRAMATICA` de `bin/docscheck.mjs` acompanha (o teste do kit acusa
 divergência). Depois reinstale — ver Personalização no README.
 
@@ -29,11 +29,14 @@ blockquote (`>`) logo abaixo do título. Nenhum arquivo assume o papel de outro.
 
 ## §2 Regras invioláveis
 
-1. **Fronteira entre presente e futuro.** O SPEC declara no cabeçalho que tudo
-   que foi planejado mas não implementado vive na seção final "Planejado / …",
-   e que nada fora dela deve ser lido como já existente (em projeto novo: como
-   escopo da primeira entrega). A seção final abre com um blockquote que reforça
-   o aviso. Essa fronteira impede que um agente implemente fase futura ou assuma
+1. **Fronteira entre presente e futuro.** Em projeto existente, o corpo do
+   SPEC descreve o comportamento atual; o que ainda não foi implementado vive
+   na seção "Planejado / …". Em projeto novo, o corpo descreve o escopo acordado
+   da primeira entrega, ainda não implementado; "Planejado" reúne as fases
+   posteriores. O cabeçalho declara explicitamente qual dos dois casos vale.
+   "Planejado" é a última seção de escopo; decisões em aberto podem vir depois.
+   A seção abre com um blockquote que reforça o aviso. Essa fronteira impede
+   que um agente implemente fase futura ou assuma
    a existência de uma feature apenas planejada. A seção existe mesmo quando não
    há nada planejado, reduzida ao blockquote ("> Nada planejado no momento."):
    fronteira ausente é ambígua; fronteira vazia não. (Exceção deliberada à
@@ -49,7 +52,11 @@ blockquote (`>`) logo abaixo do título. Nenhum arquivo assume o papel de outro.
    (§4) e o git, que guarda a íntegra. Documento que acumula "no começo era X,
    depois virou Y" cobra a atenção de toda sessão futura para contar uma
    história que não muda nenhuma decisão — e faz o agente confundir o que
-   valeu um dia com o que vale agora.
+   valeu um dia com o que vale agora. Datas que afetam uma ação vigente, como
+   expiração ou descontinuação, permanecem com seu efeito explícito:
+   `(vigência: até 2027-01-01 — migrar antes da expiração do protocolo)`.
+   Fontes externas usam a marca da regra 9. Uma data de registro, por si só,
+   não justifica permanecer no documento.
 3. **Regra de ouro.** Todo CLAUDE.md tem uma disciplina arquitetural central,
    formulada em uma frase, em negrito. Escolha a fronteira cuja violação é a
    mais cara de desfazer: borda de dados, tratamento de segredo, isolamento de
@@ -58,8 +65,8 @@ blockquote (`>`) logo abaixo do título. Nenhum arquivo assume o papel de outro.
 4. **Nunca fazer.** Lista de proibições absolutas e específicas do projeto.
    Cada item carrega a justificativa ou a evidência na própria linha (exemplo:
    "descartados: testados, não funcionam neste hardware"). Se não existirem
-   pelo menos 4 proibições específicas, a seção ainda não deve existir; não a
-   preencha com itens genéricos.
+   proibições específicas, omita a seção. Uma única proibição relevante basta;
+   não a preencha com itens genéricos para atingir uma quantidade.
 5. **Critérios de aceitação verificáveis.** Cada critério precisa poder virar
    um teste automatizado ou um roteiro de verificação manual. Formulações como
    "funciona bem" ou "é rápido" são proibidas. Teste prático: outra pessoa
@@ -67,7 +74,11 @@ blockquote (`>`) logo abaixo do título. Nenhum arquivo assume o papel de outro.
 6. **Documento vivo.** Uma convenção decidida durante a implementação é
    registrada no CLAUDE.md no momento da decisão, com a justificativa em poucas
    palavras. O estado é sempre explícito: a seção "Decisões em aberto" com o
-   texto "Nenhuma pendente" tem significado; uma seção ausente não tem.
+   texto "Nenhuma pendente" tem significado; uma seção ausente não tem. Ao
+   comparar documentação e código, separe comportamento observado de requisito
+   vigente: documento desatualizado pode ser corrigido; bug exige preservar o
+   contrato e registrar o desvio; mudança de requisito exige decisão explícita.
+   Sem evidência para classificar, registre a questão em aberto.
 7. **Formato das decisões.** Uma decisão pendente é
    `- [ ] **<decisão>** — <contexto/opções> (afeta T<x.y>, quando houver)`.
    Resolver é uma **transição, não um estado**: a rodada remove a linha e
@@ -79,9 +90,11 @@ blockquote (`>`) logo abaixo do título. Nenhum arquivo assume o papel de outro.
    trabalho: alguém decidiu e ninguém converteu. (Os travessões acima são
    sintaxe literal do formato.)
 8. **Jurisdição: cada fato tem um dono.** Um fato mora em exatamente um
-   arquivo; os outros o referenciam, nunca o repetem. Fato repetido são duas
-   verdades que divergem na primeira mudança, e nenhuma delas se sabe
-   desatualizada.
+   arquivo canônico. Os outros podem trazer um resumo curto com link explícito
+   para o dono, quando isso evita navegação desnecessária no briefing ou nas
+   instruções locais. O resumo não redefine a regra nem copia tabelas, listas
+   de critérios ou decisões pendentes. Em caso de divergência, consulte o dono
+   e registre o conflito; não trate o resumo como uma segunda autoridade.
 
    | fato                                   | dono        | os outros                          |
    | -------------------------------------- | ----------- | ---------------------------------- |
@@ -150,9 +163,9 @@ A última linha do `PLAN.md` — do `CLAUDE.md`, quando não há PLAN — carreg
 `<!-- rodada: <nome> @ <ref> -->`, onde `<ref>` é a saída de
 `git rev-parse --short HEAD` ou, sem repositório git, a data em `AAAA-MM-DD`.
 A rodada seguinte parte dele (`git log <ref>..HEAD`) em vez de adivinhar qual
-foi o último marco. O marcador é o único lugar onde uma data ou um sha é
-permitido no corpo de um documento (regra 2): ele é o eixo do tempo, para que
-nenhum outro trecho precise ser.
+foi o último marco. Confira também mudanças ainda não commitadas; o marcador
+delimita apenas os commits. Datas de vigência (regra 2) e de fontes externas (regra 9) têm finalidades distintas e também
+são permitidas; não substituem o marcador.
 
 ## §5 Invariantes mecânicos
 
@@ -180,7 +193,7 @@ entram como aviso e só viram violação com `--strict` ou com
 | `F3` | regra 1 | SPEC.md | violação | a seção "Planejado" prometida no cabeçalho existe |
 | `C1` | regra 3 | CLAUDE.md | violação | regra de ouro presente |
 | `C2` | regra 3 | CLAUDE.md | violação | regra de ouro formulada em uma frase em negrito |
-| `C3` | regra 4 | CLAUDE.md | violação | "Nunca fazer" com 4 ou mais proibições |
+| `C3` | regra 4 | CLAUDE.md | violação | "Nunca fazer" não fica vazio |
 | `C4` | regra 4 | CLAUDE.md | violação | cada proibição carrega a justificativa na própria linha |
 | `C5` | regra 6 | CLAUDE.md | violação | estado das decisões explícito |
 | `T1` | regra 10 | PLAN.md | violação | id de tarefa único |
@@ -191,7 +204,7 @@ entram como aviso e só viram violação com `--strict` ou com
 | `D1` | §1 | DOMAIN.md | violação | invariantes numerados e verificáveis |
 | `D2` | regra 10 | SPEC.md, PLAN.md | violação | invariante citado existe no DOMAIN |
 | `D3` | regra 8 | DOMAIN.md | aviso | o glossário define o termo, não a feature |
-| `H1` | regra 2 | todos | aviso | sem data nem referência a rodada no corpo |
+| `H1` | regra 2 | todos | aviso | sem datas de registro ou referência a rodada no corpo |
 | `H2` | regra 7 | todos | aviso | decisão resolvida não permanece no documento |
 | `H3` | regra 2 | todos | aviso | sem vocabulário narrativo |
 | `H4` | regra 2 | PLAN.md | aviso | fase concluída sai do PLAN |

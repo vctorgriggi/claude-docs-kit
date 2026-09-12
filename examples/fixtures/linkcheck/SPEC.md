@@ -2,7 +2,7 @@
 
 > Descreve o **linkcheck atual** — CLI que valida links internos de arquivos
 > markdown. O que foi planejado mas ainda não implementado está na seção final
-> "Planejado / não implementado (roadmap futuro)" — nada fora dela deve ser
+> "Planejado / não implementado (roadmap futuro)" — nada nela deve ser
 > lido como já existente no app.
 
 ## Problema

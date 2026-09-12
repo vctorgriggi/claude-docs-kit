@@ -111,8 +111,8 @@ Prontidão: pronto para propor.
 - **PLAN.md** — Fase 0: core puro com TDD (extração e validação); Fase 1:
   CLI. A ordem isola a lógica testável da borda.
 - **CLAUDE.md** — regra de ouro: **zero dependências de runtime**. Sem seção
-  "Nunca fazer" por ora: não existem 4 proibições específicas, e a gramática
-  proíbe preenchê-la com itens genéricos. Registro uma decisão em aberto: o
+  "Nunca fazer" por ora: as restrições já estão no contrato e não há outra
+  proibição específica a registrar; a gramática dispensa seção vazia. Registro uma decisão em aberto: o
   formato do relatório (texto simples vs JSON).
 - **Sem ROADMAP** — as ambições além do SPEC cabem na seção "Planejado"; um
   arquivo a mais não teria razão de existir.
@@ -139,11 +139,11 @@ gerado:]
 > Descreve o **linkcheck** — o que vamos construir: CLI que valida links
 > internos de arquivos markdown. O que foi planejado mas não faz parte da
 > primeira entrega está na seção final "Planejado / fases posteriores" —
-> nada fora dela deve ser lido como escopo da Fase 1.
+> nada nela deve ser lido como escopo da Fase 1.
 ```
 
 Checagens de entrega: fronteira presente/futuro no SPEC com blockquote de
-reforço — ok; "Nunca fazer" ausente por falta de 4 proibições — ok; os 2
+reforço — ok; "Nunca fazer" ausente por não haver item adicional — ok; os 2
 critérios de aceitação viram teste — ok; rastreabilidade T0.x/T1.x → módulos
 check/cli, risco → constraint 1 — ok; zero placeholder — ok; teste de
 deleção: duas linhas redundantes cortadas do CLAUDE.md — reparado.

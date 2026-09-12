@@ -72,7 +72,7 @@ fronteira, e um snippet mínimo quando prosa não ensina. Derive as seções das
 ## Nunca fazer
 
 - Nunca <proibição absoluta e específica> — <justificativa ou evidência na mesma linha>.
-- Nunca ... (4 a 8 itens; cada um carrega sua justificativa)
+<Uma proibição relevante basta; omita a seção quando não houver nenhuma.>
 
 ## Gaps conhecidos
 

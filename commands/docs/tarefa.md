@@ -1,8 +1,8 @@
 ---
 description: Monta o briefing de implementação de uma tarefa do PLAN — o contrato vigente, os invariantes que ela não pode violar e o que prova que ficou pronta. Não escreve código nem documento.
 argument-hint: <id da tarefa, ex.: T2.1> [contexto adicional]
-# Sem Write/Edit: este comando prepara a implementação, não a executa. A
-# fronteira do kit continua sendo que ele nunca toca no código.
+# Este comando prepara a implementação. A ausência de Write/Edit nesta lista
+# não restringe ferramentas; o escopo de leitura é uma instrução ao agente.
 allowed-tools: Read, Glob, Grep, Bash(git log:*), Bash(git diff:*), Bash(ls:*), Bash(tree:*), Bash(cat:*), Bash(head:*), Bash(wc:*)
 disable-model-invocation: true
 ---

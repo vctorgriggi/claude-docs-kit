@@ -1,8 +1,8 @@
 ---
 description: Fecha um marco de implementação. Sincroniza SPEC.md, PLAN.md e CLAUDE.md com o estado real do código, converte as decisões tomadas no caminho em convenções e proibições, e tira do documento a história que já não muda como um agente age.
 argument-hint: [nome da rodada ou resumo do que foi feito]
-# Write/Edit ausentes de propósito: cada escrita passa pelo prompt de permissão
-# do harness — um segundo gate além do aval conversacional exigido no passo 3.
+# Write/Edit não são pré-autorizados por este comando. A configuração da
+# sessão governa a permissão efetiva; o aval conversacional é uma instrução.
 allowed-tools: Read, Glob, Grep, Bash(git log:*), Bash(git diff:*), Bash(git tag:*), Bash(git status:*), Bash(git rev-parse:*), Bash(node ~/.claude/bin/docscheck.mjs:*)
 disable-model-invocation: true
 ---
@@ -36,12 +36,21 @@ texto normativo, e o que é mecânico vive no `docscheck`.
    código real, os gaps conhecidos ainda existem. Sem isso, a rodada
    sincroniza só o que o usuário lembrar de contar.
 2. Leia CLAUDE.md, SPEC.md e PLAN.md (e DOMAIN, ROADMAP e docs/, se existirem).
+   Classifique cada divergência antes de propor edição: **documento
+   desatualizado**, **bug de implementação** ou **mudança deliberada de
+   requisito**. Na primeira, atualize a descrição com evidência; na segunda,
+   preserve o contrato e registre o desvio e a correção necessária; na terceira,
+   altere o requisito somente com decisão explícita do usuário. Sem evidência,
+   mantenha a questão aberta. Não rebaixe critérios para fazer o código passar.
 3. Levante o que mudou desde a última sincronização. Se o fim do PLAN.md (ou
    do CLAUDE.md, quando não há PLAN) tiver o marcador
    `<!-- rodada: <nome> @ <ref> -->`, a janela é determinística:
    `git log <ref>..HEAD --oneline`. Sem marcador, use `git log --oneline`
    desde a última tag ou marco (ou desde a última rodada mencionada nos
-   documentos). Consulte diffs quando um commit não se explicar sozinho. Sem
+   documentos). Confira também `git status --short`, `git diff` e
+   `git diff --cached` para incluir mudanças ainda não commitadas; identifique-as
+   separadamente da janela de commits. Consulte diffs quando um commit não se
+   explicar sozinho. Sem
    repositório git, apoie-se apenas no diff de arquivos e nesta conversa, e
    diga isso ao usuário.
 4. Monte a lista do que aconteceu e pergunte ao usuário o que dela foi decisão
@@ -65,7 +74,7 @@ sempre a mesma, e vem antes de qualquer edição:
 > **Isto muda como um agente age no código daqui em diante?**
 
 - **Muda** → converta no artefato que carrega essa mudança, escrito no
-  presente e sem data: uma **convenção** no CLAUDE.md com a justificativa na
+  presente, sem cronologia de registro: uma **convenção** no CLAUDE.md com a justificativa na
   linha; uma **proibição** em "Nunca fazer"; um **gap conhecido** com o
   paliativo e onde ele vive; uma linha em **"Fora do escopo"** do SPEC quando
   o caminho foi rejeitado e alguém pode re-propor.
@@ -90,7 +99,8 @@ conversa.
   reescrito no presente (o SPEC descreve o estado atual); feature removida do
   produto vira uma linha em "Fora do escopo" com o porquê — a guarda contra
   re-propor fica no documento, a cronologia fica no git; atualizar constraints
-  e critérios de aceitação se a realidade os mudou.
+  e critérios de aceitação apenas quando houver mudança deliberada aprovada.
+  Se o código descumpre um requisito vigente, registre o desvio sem removê-lo.
 - **CLAUDE.md**: registrar as convenções e proibições que saíram da conversão
   (§2), cada uma com a justificativa em poucas palavras; adicionar dívidas
   deliberadas a "Gaps conhecidos", com o paliativo e onde ele vive; aposentar
@@ -116,17 +126,17 @@ conversa.
   outra história.
 - Manter história por precaução. Se a linha não muda como um agente age, ela
   não fica "por via das dúvidas": o git guarda a íntegra (regra 2).
-- Corrigir código durante a sincronização. Quando doc e código divergem, o
-  código é a verdade: atualize o doc (§3); dívida deliberada confirmada entra
-  em "Gaps conhecidos"; nunca edite código aqui.
+- Corrigir código durante a sincronização. Classifique a divergência conforme
+  o §1; preserve requisitos vigentes e encaminhe bugs para correção fora deste
+  comando. Dívida deliberada confirmada entra em "Gaps conhecidos".
 - Registrar intenção que o usuário não confirmou nesta conversa.
 - Reescrever seções que não mudaram. Mantenha o diff mínimo.
 - **Resolver conflito de fonte em silêncio.** Quando duas fontes que deveriam
   concordar divergem — o manifest declara um alias que a árvore não tem, duas
   áreas adotaram convenções opostas, o SPEC promete o que o código não faz —
-  o comportamento que o código executa vence a declaração. Registre a
-  divergência como fato e proponha a decisão em aberto ("X declara Y, mas o
-  código faz Z; alinhar?"). Escolher um lado sozinho é inventar intenção.
+  registre comportamento observado e requisito declarado separadamente.
+  Proponha decisão em aberto quando faltar evidência para classificar a
+  divergência. Escolher um lado sozinho é inventar intenção.
 - **Escrever o documento contra a evidência.** Se o usuário pedir uma
   afirmação que o código contradiz, nomeie a contradição em uma frase e
   ofereça as saídas coerentes: documentar o comportamento real; registrar a
@@ -153,8 +163,8 @@ conversa.
    CLAUDE.md, quando não há PLAN — o marcador
    `<!-- rodada: <nome> @ <ref> -->`, onde `<ref>` é a saída de
    `git rev-parse --short HEAD`; sem repositório git, a data (AAAA-MM-DD). A
-   próxima rodada parte dele (§1). É o único carimbo de tempo autorizado no
-   corpo de um documento (GRAMATICA §4).
+   próxima rodada parte dele (§1). Ele delimita commits; as mudanças ainda não
+   commitadas também devem ser conferidas na próxima rodada (GRAMATICA §4).
 3. **Resumo.** Termine com: o que mudou em cada arquivo (meia linha por
    mudança); **cada decisão resolvida, nomeada, com o que ela virou** ("Formato
    do relatório → convenção em CLAUDE §Convenções"); o que saiu do documento e

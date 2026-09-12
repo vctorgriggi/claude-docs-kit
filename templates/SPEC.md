@@ -1,10 +1,11 @@
 # SPEC.md
 
-> Descreve o **<projeto> atual** <ou, em projeto novo: "o frontend/app/serviço
-> X — o que vamos construir">. O que foi planejado mas ainda não implementado
-> está na seção final "Planejado / <fases posteriores | não implementado
-> (roadmap futuro)>" — nada fora dela deve ser lido como <já existente no app |
-> escopo da primeira entrega>.
+> <Projeto existente: descreve o comportamento atual do projeto; o que ainda
+> não foi implementado está em "Planejado / não implementado".>
+> <Projeto novo: descreve o escopo acordado da primeira entrega, ainda não
+> implementado; "Planejado / fases posteriores" reúne o que fica para depois.>
+
+<Escolha apenas um dos dois cabeçalhos acima, conforme o estado do projeto.>
 
 ## Problema
 
@@ -14,7 +15,7 @@ quando o projeto faz mais de uma coisa. 2 a 4 parágrafos.>
 ## Usuários
 
 - **<perfil>** — <o que faz e o que quer>.
-- **(Fase posterior) <perfil futuro>** — <marcado como tal, nunca misturado aos atuais>.
+<Perfis exclusivos de fases posteriores ficam na seção "Planejado".>
 
 ## Funcionalidades
 

@@ -1,12 +1,6 @@
-// Mutação: a prova de que cada regra do docscheck detecta uma violação real.
-//
-// Um teste unitário prova que a regra dispara no input que o autor inventou.
-// Isto parte de um doc-set REAL e limpo (os fixtures), quebra um invariante de
-// cada vez do jeito que um humano quebraria, e exige que a regra correspondente
-// acuse. Regra que não acusa é decoração — e decoração num verificador é pior
-// que ausência, porque o CI verde passa a mentir.
-//
-// Toda regra do catálogo precisa de um caso aqui; a suíte falha se faltar.
+// Casos de mutação sobre doc-sets de referência: cada alteração deve acionar
+// a regra esperada. Um caso por regra garante presença no corpus, não cobertura
+// de todas as formas de violação; variantes e ausências ficam na suíte unitária.
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -77,17 +71,7 @@ const CASOS = [
     editar(d, "CLAUDE.md", (s) => {
       const i = s.indexOf("## Nunca fazer");
       const j = s.indexOf("## Gaps conhecidos");
-      const itens = s
-        .slice(i, j)
-        .split("\n")
-        .filter((l) => l.startsWith("- Nunca"));
-      return (
-        s.slice(0, i) +
-        "## Nunca fazer\n\n" +
-        itens.slice(0, 2).join("\n") +
-        "\n\n" +
-        s.slice(j)
-      );
+      return s.slice(0, i) + "## Nunca fazer\n\n" + s.slice(j);
     })],
   ["C4", LINK, (d) =>
     editar(d, "CLAUDE.md", (s) =>

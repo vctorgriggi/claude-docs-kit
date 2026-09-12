@@ -39,14 +39,17 @@ segundo só perde a lâmina mais afiada quando não há doc-set.
 | --- | --- | --- | --- | --- |
 | [**`/docs:fundar`**](commands/docs/fundar.md) | ao começar, ou ao herdar um repo | entrevista→docs, ou código→docs | os documentos | [01](examples/01-modo-a-cli-nova.md) · [02](examples/02-modo-b-varredura.md) |
 | [**`/docs:tarefa T2.1`**](commands/docs/tarefa.md) | antes de implementar | docs→código | nada — entrega o briefing | [03](examples/03-tarefa-e-decidir.md) |
-| [**`/docs:decidir`**](commands/docs/decidir.md) | no momento em que algo é decidido | conversa→docs | uma linha, um arquivo | [03](examples/03-tarefa-e-decidir.md) |
+| [**`/docs:decidir`**](commands/docs/decidir.md) | no momento em que algo é decidido | conversa→docs | o diff da decisão | [03](examples/03-tarefa-e-decidir.md) |
 | [**`/docs:auditar`**](commands/docs/auditar.md) | a qualquer momento, e no CI | código→docs | **nada** — só relatório | [04](examples/04-auditar.md) |
 | [**`/docs:rodada`**](commands/docs/rodada.md) | ao fechar um marco | código→docs | os documentos | [05](examples/05-rodada.md) |
 
-**O kit nunca escreve código.** `Write` e `Edit` estão fora do `allowed-tools`
-de todos os comandos, de propósito: além do aval conversacional, cada escrita
-passa pelo prompt de permissão do harness. `/docs:tarefa` prepara a
-implementação e para — quem implementa é a sessão.
+**O escopo do kit é documentação.** Os comandos instruem o agente a não
+escrever código; `/docs:tarefa` prepara a implementação e para. `Write` e
+`Edit` não são pré-autorizados em `allowed-tools`, mas a configuração da sessão
+continua governando essas ferramentas: omiti-las não garante bloqueio nem um
+novo prompt de permissão. A aprovação do diff é uma instrução conversacional.
+Para auditoria com bloqueio técnico de escrita, configure restrições efetivas
+no ambiente de execução; a lista de pré-autorização não fornece isolamento.
 
 **E o ciclo não depende de você lembrar dele.** Os cinco comandos são *pull* —
 alguém precisa invocá-los. O [hook de `SessionStart`](#o-estado-chegar-ate-voce-em-vez-de-esperar-ser-procurado)
@@ -198,7 +201,8 @@ ensinou uma convenção ou não sobrevive à fase.
 
 ### Jurisdição
 
-Cada fato mora em exatamente um arquivo; os outros referenciam, nunca repetem.
+Cada fato tem um arquivo canônico; os outros referenciam esse dono. Resumos
+curtos com link são permitidos quando ajudam a agir sem navegação excessiva.
 Stack com versão é do CLAUDE.md e o SPEC cita a tecnologia sem versão; critério
 de aceitação é do SPEC e o PLAN cita pelo número; invariante de negócio é do
 DOMAIN e todos citam por `I<n>`. Fato repetido são duas verdades que divergem
@@ -225,13 +229,21 @@ node ~/.claude/bin/docscheck.mjs --explain H2 # o porquê e os exemplos de uma r
 | **Contrato (CLAUDE.md)** | `C1` `C2` `C3` `C4` `C5` | regra de ouro presente; … |
 | **Rastreabilidade cruzada** | `T1` `T2` `T3` `T4` `T5` | id de tarefa único; … |
 | **Domínio** | `D1` `D2` `D3` | invariantes numerados e verificáveis; … |
-| **Presente permanente** *(aviso)* | `H1` `H2` `H3` `H4` `H5` | sem data nem referência a rodada no corpo; … |
+| **Presente permanente** *(aviso)* | `H1` `H2` `H3` `H4` `H5` | sem datas de registro ou referência a rodada no corpo; … |
 | **Jurisdição** *(aviso)* | `J1` `J2` | a mesma decisão não aparece em dois arquivos; … |
 | **Ancoragem doc↔código** *(aviso)* | `A0` `A1` `A2` `A3` `A4` `A5` `A6` `A7` `A8` | a ancoragem alcança o ecossistema do projeto; … |
 | **Supressão** | `S1` | supressão declara o motivo |
 | **Volume** *(aviso)* | `V1` | volume do CLAUDE.md acima de 200 linhas |
 
 <!-- REGRAS:fim -->
+
+A gramática v6 permite uma única proibição, exige a seção de decisões no
+contrato raiz e verifica as regras comuns também nos arquivos Markdown de
+`docs/` (inclusive subpastas) e nos contratos locais sob `packages/` e `apps/`.
+Contratos locais não precisam repetir as seções obrigatórias da raiz. Espelhos
+por symlink são ignorados. `--strict` pode revelar problemas antes não detectados
+nesses documentos; a verificação continua heurística, não prova equivalência
+semântica entre contrato e implementação.
 
 As famílias `H`, `J` e `A` entram como **aviso** porque dependem de calibração
 por projeto; `--strict`, ou `{"strict": true}` num `.docscheck.json` no
@@ -240,8 +252,9 @@ silenciado com `<!-- docscheck: ignore A3 — motivo -->` — sem motivo na linh
 a própria supressão vira violação.
 
 Fora do verificador: o **marcador de rodada** (`<!-- rodada: <nome> @ <sha> -->`
-no fim do PLAN) dá a janela determinística da rodada seguinte; o **gate duplo**
-mantém `Write`/`Edit` fora do `allowed-tools`; e as **checagens de julgamento**
+no fim do PLAN) delimita os commits da rodada seguinte, complementados pelo
+estado das mudanças ainda não commitadas; a aprovação conversacional rege os
+diffs propostos; e as **checagens de julgamento**
 (teste do terceiro, teste de deleção) seguem com o agente.
 
 ### Panorama de vários projetos
@@ -253,9 +266,10 @@ Um diretório é "verifique isto" — a ausência de doc-set é erro de uso. Vá
 $ docscheck ~/Workspaces/*
 linkcheck  ok
 monorepo   ok
-notas-api  2 violação(ões)
+notas-api  3 violação(ões)
              CLAUDE.md:1 [E1] sem blockquote de papel logo abaixo do título (§1)
              CLAUDE.md:1 [C1] sem seção "Regra de ouro" (regra 3)
+             CLAUDE.md:1 [C5] declare "Decisões em aberto" com pendências ou "Nenhuma pendente." (regra 6)
 pedidos    ok
 
 resumo: 1 de 4 doc-set(s) com violação
@@ -310,9 +324,9 @@ Sete camadas, todas rápidas e sem custo de token:
 | passo | o que garante |
 | --- | --- |
 | [`test/docscheck.test.mjs`](test/docscheck.test.mjs) | cada regra do catálogo se comporta como o `--explain` dela promete |
-| [`test/mutacao.test.mjs`](test/mutacao.test.mjs) | cada regra **detecta uma violação real**: parte de um fixture limpo, quebra um invariante do jeito que um humano quebraria e exige que a regra acuse |
+| [`test/mutacao.test.mjs`](test/mutacao.test.mjs) | cada regra tem um caso que **detecta uma violação no fixture**: parte de um fixture limpo, quebra um invariante do jeito que um humano quebraria e exige que a regra acuse |
 | [`test/coerencia.test.mjs`](test/coerencia.test.mjs) | links, caminhos, ids de regra, nomes de comando e tabelas cruzadas resolvem em todo o repositório |
-| [`test/completude.test.mjs`](test/completude.test.mjs) | **nada ficou sem ligar**: comando sem transcrição, regra sem caso de mutação, suíte que o CI não roda, fixture que nada exercita, regra da gramática que ninguém enforça nem declara como julgamento |
+| [`test/completude.test.mjs`](test/completude.test.mjs) | confere as ligações previstas: comando sem transcrição, regra sem caso de mutação, suíte que o CI não roda, fixture que nada exercita, regra da gramática que ninguém enforça nem declara como julgamento |
 | `scripts/gerar-gramatica.mjs --check` | as tabelas da gramática e do README estão em dia com o catálogo |
 | `node --test` em cada fixture | o código sob os doc-sets de referência funciona — no `pedidos`, cada teste nomeia o invariante de domínio que prova |
 | `docscheck --strict` nos dois fixtures | os exemplos obedecem a gramática que ensinam |

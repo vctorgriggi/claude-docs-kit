@@ -1,8 +1,8 @@
 ---
 description: Registra uma decisão no arquivo que tem jurisdição sobre ela, ou resolve uma pendente convertendo-a em convenção, proibição, gap ou exclusão de escopo. Uma edição pequena, no momento em que a decisão acontece.
 argument-hint: <a decisão, em texto livre> | resolver <nome da decisão pendente>
-# Write/Edit ausentes de propósito: mesmo uma edição de uma linha passa pelo
-# prompt de permissão do harness, além do aval conversacional do §3.
+# Write/Edit não são pré-autorizados por este comando. A configuração da
+# sessão governa a permissão efetiva; o aval conversacional é uma instrução.
 allowed-tools: Read, Glob, Grep, Bash(git log:*), Bash(git diff:*), Bash(ls:*), Bash(cat:*), Bash(head:*), Bash(wc:*), Bash(node ~/.claude/bin/docscheck.mjs:*)
 disable-model-invocation: true
 ---
@@ -27,7 +27,7 @@ que `./install.sh` resolve. A tabela de jurisdição da regra 8 governa o §2.
 
 ## 1. Classifique
 
-Toda decisão é uma de quatro coisas. A classificação determina o arquivo e a
+Classifique a decisão por seu efeito. A classificação determina o arquivo e a
 forma, e vem antes de qualquer escrita:
 
 | a decisão é… | vira | onde |
@@ -35,7 +35,8 @@ forma, e vem antes de qualquer escrita:
 | uma regra de como escrever código aqui | convenção, com a justificativa na linha | `CLAUDE.md` › Convenções |
 | um caminho proibido, com custo conhecido | proibição em "Nunca fazer" | `CLAUDE.md` › Nunca fazer |
 | uma dívida assumida de propósito | entrada em "Gaps conhecidos", com o paliativo e onde ele vive | `CLAUDE.md` › Gaps conhecidos |
-| um recorte de produto, ou uma feature descartada | linha em "Fora do escopo", com o porquê | `SPEC.md` |
+| uma capacidade ou um critério de produto aprovado | funcionalidade ou critério; em "Planejado" enquanto não implementado | `SPEC.md` |
+| uma exclusão de produto, ou uma feature descartada | linha em "Fora do escopo", com o porquê | `SPEC.md` |
 | ainda **não** decidida — falta informação | decisão em aberto, no formato da regra 7 | o arquivo da jurisdição (regra 8) |
 
 Ordem/execução (o que fazer antes do quê) é do `PLAN.md`; termo de domínio ou
@@ -64,16 +65,17 @@ está nos documentos:
 ## 3. Proponha e escreva
 
 Mostre o diff exato antes de escrever: o arquivo, a seção, a linha que entra e
-a linha que sai. Uma decisão, uma edição — não aproveite a viagem para arrumar
+a linha que sai. Uma decisão, um diff coerente, inclusive quando a pendência
+sai de um arquivo e o resultado entra em outro — não aproveite para arrumar
 o resto do documento; isso é trabalho da `/docs:rodada`, com o aval dela.
 
 Com o OK, escreva. A linha nova segue a gramática:
 
 - justificativa na própria linha, em poucas palavras (regra 9);
-- sem data, sem "antes era assim", sem nome de rodada (regra 2) — o eixo do
-  tempo é o marcador e o git;
+- sem cronologia de registro; datas que mudam ações vigentes seguem a marca
+  `(vigência: <prazo> — <efeito>)` da regra 2;
 - convenção vinda de fonte externa carrega `(fonte: docs oficiais <stack>
-  <versão>, <mês/ano>)`, que é a única marca temporal autorizada (regra 9).
+  <versão>, <mês/ano>)`, conforme a regra 9.
 
 ## 4. Feche
 

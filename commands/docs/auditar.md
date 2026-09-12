@@ -1,8 +1,8 @@
 ---
 description: Confere a documentação-de-agente contra o código sem tocar em nada. Roda o docscheck, soma o drift que só julgamento pega e devolve um relatório classificado com a remediação proposta.
 argument-hint: [área ou arquivo para focar, opcional]
-# Nem Write nem Edit: este comando é read-only por contrato, não por omissão.
-# É o que permite rodá-lo em qualquer momento, inclusive em CI, sem risco.
+# A auditoria é somente leitura por instrução. allowed-tools não bloqueia
+# ferramentas; execução isolada exige restrições na configuração da sessão.
 allowed-tools: Read, Glob, Grep, Bash(git log:*), Bash(git diff:*), Bash(git status:*), Bash(git rev-parse:*), Bash(ls:*), Bash(tree:*), Bash(cat:*), Bash(head:*), Bash(wc:*), Bash(node ~/.claude/bin/docscheck.mjs:*)
 disable-model-invocation: true
 ---
@@ -60,15 +60,18 @@ intenção declarada. Investigue nesta ordem, sempre com evidência:
 
 Regra absoluta, herdada da varredura: **intenção não se infere**. Divergência é
 fato observável; a razão dela é pergunta para o usuário, não dedução sua.
-Quando duas fontes discordam, o comportamento que o código executa vence a
-declaração — e a divergência entra como achado, nunca resolvida em silêncio.
+Quando duas fontes discordam, registre separadamente o comportamento observado
+e o requisito vigente. Classifique como documento desatualizado, bug de
+implementação ou mudança deliberada de requisito; indique o que não puder
+classificar. Um contrato descumprido não se torna inválido por causa do bug.
 
 ## 3. Relatório
 
 Uma mensagem, achados classificados por consequência — não por arquivo, não
 por ordem de descoberta:
 
-- **CRÍTICO** — o documento afirma algo falso sobre o presente. Um agente que
+- **CRÍTICO** — o documento afirma algo falso sobre o presente ou o código
+  viola um contrato vigente com consequência grave. Um agente que
   ler isto vai agir errado: regra de ouro desmentida pelo código, feature
   planejada descrita como existente, comando de execução que não funciona,
   convenção que o código abandonou.

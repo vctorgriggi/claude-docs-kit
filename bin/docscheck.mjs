@@ -42,7 +42,7 @@ const ARQUIVOS = [
 // Versão da gramática que este verificador implementa. Deve acompanhar a
 // declaração "Versão da gramática" em grammar/GRAMATICA.md; o teste do kit
 // acusa divergência.
-export const GRAMATICA = "v5";
+export const GRAMATICA = "v6";
 
 // Limite brando de volume do CLAUDE.md (regra 11): acima disso vira aviso —
 // nunca violação; o critério de corte segue sendo o teste de deleção.
@@ -183,11 +183,11 @@ export const REGRAS = [
     regra: "regra 4",
     alvo: "CLAUDE.md",
     severidade: "violacao",
-    titulo: '"Nunca fazer" com 4 ou mais proibições',
+    titulo: '"Nunca fazer" não fica vazio',
     porque:
-      "Menos de quatro proibições específicas indica seção preenchida por completude; item genérico treina o agente a ignorar a seção inteira.",
-    ok: "## Nunca fazer\n\n- Nunca A — porquê.\n- Nunca B — porquê.\n- Nunca C — porquê.\n- Nunca D — porquê.",
-    ruim: "## Nunca fazer\n\n- Nunca A — porquê.\n- Nunca B — porquê.",
+      "Uma proibição específica e relevante basta. Sem proibições, omita a seção em vez de preencher com itens genéricos.",
+    ok: "## Nunca fazer\n\n- Nunca expor tokens — permite acesso indevido.",
+    ruim: "## Nunca fazer\n\n## Convenções",
   },
   {
     id: "C4",
@@ -306,9 +306,9 @@ export const REGRAS = [
     alvo: "todos",
     severidade: "aviso",
     promovivel: true,
-    titulo: "sem data nem referência a rodada no corpo",
+    titulo: "sem datas de registro ou referência a rodada no corpo",
     porque:
-      "Data no corpo é cronologia: transforma o documento em diário e faz o agente pesar o que valeu um dia junto com o que vale agora. O eixo do tempo é o marcador de rodada (§4) e o git.",
+      "Datas de registro pertencem ao git e ao marcador. Datas de fontes e de vigência com efeito explícito podem orientar decisões atuais (regras 2 e 9).",
     ok: "- Slug de âncora: NFD sem diacríticos (âncoras acentuadas falhavam sem normalização).",
     ruim: "- Slug de âncora: NFD sem diacríticos (decidido na fase-1, 2026-07-13).",
   },
@@ -642,10 +642,9 @@ function caminhoConcreto(p) {
 }
 
 // Os caminhos do repositório-alvo, para o A5 resolver uma citação por sufixo.
-// Num repositório git é o que o git enxerga — rastreados e novos, nunca os
-// ignorados — porque "existe no repositório" é sobre o que se compartilha, e
-// um build local não pode fazer um ponteiro parecer vivo numa máquina e morto
-// noutra. Fora do git, uma caminhada bounded que pula o que um build deixa.
+// Na resolução por sufixo, considere arquivos rastreados e novos que existem
+// no disco, excluindo os ignorados pelo git. Caminhos diretos são conferidos
+// no disco. Fora do git, a caminhada pula diretórios comuns de build.
 const PASTAS_FORA_DO_INDICE = new Set([
   "node_modules", ".git", ".next", "dist", "build", "coverage", ".turbo",
 ]);
@@ -657,7 +656,7 @@ async function caminhosDoRepositorio(dir) {
         ["ls-files", "--cached", "--others", "--exclude-standard", "-z"],
         { cwd: dir, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 },
       );
-      return saida.split("\0").filter(Boolean);
+      return saida.split("\0").filter((p) => p && existsSync(path.join(dir, p)));
     } catch {
       // git ausente ou quebrado: a caminhada abaixo responde igual.
     }
@@ -766,7 +765,9 @@ async function ancoragem(dir, docs, sombras, achar) {
         const pilha = [];
         for (const linhaBruta of dentro[1].split("\n")) {
           if (!linhaBruta.trim()) continue;
-          const semComentario = linhaBruta.replace(/\s+#.*$/, "").trimEnd();
+          const semComentario = linhaBruta
+            .replace(/\s+#.*$/, "")
+            .replace(/[│├└─]/g, " ").trimEnd();
           const nome = semComentario.trim();
           if (!nome || !/^[\w.@-]+\/?$/.test(nome)) continue;
           const recuo = semComentario.length - semComentario.trimStart().length;
@@ -890,7 +891,7 @@ async function ancoragem(dir, docs, sombras, achar) {
       const p = m[1].replace(/#.*$/, "").trim();
       if (!caminhoConcreto(p) || vistos.has(p)) continue;
       vistos.add(p);
-      if (!caminhoResolve(dir, p, indiceDoRepositorio)) {
+      if (!caminhoResolve(path.dirname(path.join(dir, nome)), p, indiceDoRepositorio)) {
         const antes = md.slice(0, m.index).split("\n").length;
         achar(nome, antes, "A5", `o caminho "${p}" não existe no repositório`);
       }
@@ -935,18 +936,16 @@ async function ancoragem(dir, docs, sombras, achar) {
 
   // --- A7: satélites de docs/ com ponteiro e índice, sem órfãos ---
   const pastaDocs = path.join(dir, "docs");
-  if (existsSync(pastaDocs)) {
+  if (existsSync(pastaDocs) && !(await lstat(pastaDocs)).isSymbolicLink()) {
     let arquivos = [];
     try {
-      arquivos = (await readdir(pastaDocs)).filter(
-        (f) => f.endsWith(".md") && f.toLowerCase() !== "readme.md",
-      );
+      arquivos = (await readdir(pastaDocs, { withFileTypes: true }))
+        .filter((f) => f.isFile() && f.name.endsWith(".md") && f.name.toLowerCase() !== "readme.md")
+        .map((f) => f.name);
     } catch {
       /* docs/ ilegível não é problema da gramática */
     }
-    const indice = existsSync(path.join(pastaDocs, "README.md"))
-      ? await readFile(path.join(pastaDocs, "README.md"), "utf8")
-      : null;
+    const indice = docs["docs/README.md"] ?? null;
     const corpos = Object.values(sombras).join("\n");
     for (const f of arquivos) {
       const rel = `docs/${f}`;
@@ -993,7 +992,7 @@ async function ancoragem(dir, docs, sombras, achar) {
       }
       for (const p of pacotes.filter((x) => x.isDirectory())) {
         const alvo = path.join(raizPacotes, p.name, "CLAUDE.md");
-        if (!existsSync(alvo)) continue;
+        if (!existsSync(alvo) || (await lstat(alvo)).isSymbolicLink()) continue;
         const md = semFences(await readFile(alvo, "utf8"));
         const rel = `${base}/${p.name}/CLAUDE.md`;
         const ouro = secoes(md).find((s) => /^Regra de ouro/.test(s.titulo));
@@ -1137,6 +1136,32 @@ export async function verificar(dir, opcoes = {}) {
     );
   }
 
+  // Satélites e contratos locais recebem as regras comuns, sem herdar as
+  // seções obrigatórias do contrato raiz. Não siga symlinks: espelhos não
+  // devem duplicar achados nem levar a caminhada para fora do projeto.
+  async function coletar(rel, contratos = false) {
+    let entradas;
+    try {
+      const pasta = path.join(dir, rel);
+      if ((await lstat(pasta)).isSymbolicLink()) return;
+      entradas = await readdir(pasta, { withFileTypes: true });
+    } catch (e) {
+      if (e.code === "ENOENT") return;
+      throw e;
+    }
+    for (const entrada of entradas) {
+      if (PASTAS_FORA_DO_INDICE.has(entrada.name)) continue;
+      const nome = `${rel}/${entrada.name}`;
+      if (entrada.isDirectory()) await coletar(nome, contratos);
+      else if (entrada.isFile() && (contratos ? entrada.name === "CLAUDE.md" : entrada.name.endsWith(".md"))) {
+        docs[nome] = await readFile(path.join(dir, nome), "utf8");
+      }
+    }
+  }
+  await coletar("docs");
+  await coletar("packages", true);
+  await coletar("apps", true);
+
   // Um achado carrega o id do catálogo; a severidade sai de REGRAS, nunca da
   // chamada — é o que impede um check novo escapar do catálogo. Sob --strict,
   // as famílias que dependem de calibração (H, J, A) sobem para violação.
@@ -1233,12 +1258,14 @@ export async function verificar(dir, opcoes = {}) {
   if (spec) {
     const papel = blockquoteDePapel(spec);
     const planejado = secao(spec, "Planejado");
-    if (papel !== null && !/planejad/i.test(papel)) {
+    if (papel !== null && (
+      !/planejad/i.test(papel) || /nada fora dela deve ser lido como/i.test(papel)
+    )) {
       achar(
         "SPEC.md",
         1,
         "F1",
-        'o blockquote de cabeçalho não declara a seção "Planejado" (regra 1)',
+        'o cabeçalho deve distinguir o corpo atual (ou primeira entrega) da seção "Planejado", sem inverter a fronteira (regra 1)',
       );
     }
     if (planejado) {
@@ -1278,12 +1305,12 @@ export async function verificar(dir, opcoes = {}) {
     const nunca = secao(claude, "Nunca fazer");
     if (nunca) {
       const itens = bullets(nunca);
-      if (itens.length < 4) {
+      if (itens.length === 0) {
         achar(
           "CLAUDE.md",
           nunca.linha,
           "C3",
-          `"Nunca fazer" com ${itens.length} item(ns); com menos de 4 proibições específicas a seção não deve existir (regra 4)`,
+          '"Nunca fazer" vazio; registre uma proibição específica ou omita a seção (regra 4)',
         );
       }
       for (const b of itens) {
@@ -1299,15 +1326,16 @@ export async function verificar(dir, opcoes = {}) {
     }
     const decisoes = secao(claude, "Decisões em aberto");
     if (
-      decisoes &&
-      !/- \[ \]/.test(decisoes.corpo) &&
-      !/nenhuma pendente/i.test(decisoes.corpo)
+      !decisoes || (
+        !/- \[ \]/.test(decisoes.corpo) &&
+        !/nenhuma pendente/i.test(decisoes.corpo)
+      )
     ) {
       achar(
         "CLAUDE.md",
-        decisoes.linha,
+        decisoes?.linha ?? 1,
         "C5",
-        'seção sem pendências deve declarar "Nenhuma pendente." (regra 6)',
+        'declare "Decisões em aberto" com pendências ou "Nenhuma pendente." (regra 6)',
       );
     }
   }
@@ -1430,13 +1458,14 @@ export async function verificar(dir, opcoes = {}) {
     linhas(md).forEach((l, i) => {
       const linha = i + 1;
       if (MARCADOR.test(l.trim())) return; // §4: o eixo do tempo autorizado
-      const texto = l.replace(/\(fonte:[^)]*\)/gi, ""); // regra 9: fonte e versão
+      const texto = l.replace(/\(fonte:[^)]*\)/gi, "")
+        .replace(/\(vigência:\s*[^)\n]+?\s+—\s+[^)\n]+\)/gi, "");
       if (!linhasDeH2.has(`${nome}:${linha}`) && DATA.some((re) => re.test(texto))) {
         achar(
           nome,
           linha,
           "H1",
-          "data ou carimbo de rodada no corpo; o eixo do tempo é o marcador (§4) e o git",
+          "data de registro ou carimbo de rodada no corpo; use o git ou explicite a vigência e seu efeito (regra 2)",
         );
       }
       const n = texto.match(NARRATIVA);
