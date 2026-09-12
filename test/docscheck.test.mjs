@@ -1230,6 +1230,7 @@ test("--json emite o contrato que o /docs auditar consome", async () => {
   assert.deepEqual(Object.keys(r).sort(), [
     "arquivos",
     "avisos",
+    "cobertura",
     "gramatica",
     "violacoes",
   ]);
@@ -1298,10 +1299,8 @@ test('.docscheck.json com {"strict": true} promove como a flag; inválido é err
 
 // --- acoplamento: catálogo ↔ implementação ↔ texto normativo ---
 //
-// Estes quatro testes substituem a comparação de string que existia até a v4
-// (GRAMATICA === a versão declarada no bootstrap.md). Aquela comparação
-// deixava passar exatamente o caso perigoso: editar uma regra sem tocar no
-// verificador.
+// Estes testes conferem catálogo, implementação e texto normativo para
+// detectar regras documentadas sem a checagem correspondente.
 
 const FONTE = await readFile(new URL("../bin/docscheck.mjs", import.meta.url), "utf8");
 const NORMATIVO = await readFile(

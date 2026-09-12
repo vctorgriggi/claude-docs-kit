@@ -14,6 +14,8 @@
 | Gramática ausente na raiz da skill | Para e informa instalação incompleta; não inventa regras |
 | Skill instalada em caminho com espaços; projeto em outro diretório | Lê os recursos a partir da skill e verifica o projeto-alvo |
 | `/docs estado` em linkcheck | Resume Fase 2, três tarefas abertas e a pendência de timeout; nada escrito |
+| `/docs estado` com pendências em pacote e docs/ | Inclui as pendências com seus arquivos de origem; mantém fase e marcador da raiz |
+| Auditoria com cobertura parcial no JSON | Expõe os limites relevantes; ausência de achados não vira afirmação de cobertura completa |
 
 ## Fundação
 

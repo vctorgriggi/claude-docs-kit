@@ -41,7 +41,7 @@ const ARQUIVOS = [
 // Versão da gramática que este verificador implementa. Deve acompanhar a
 // declaração "Versão da gramática" em grammar/GRAMATICA.md; o teste do kit
 // acusa divergência.
-export const GRAMATICA = "v8";
+export const GRAMATICA = "v9";
 
 // Limite brando de volume do AGENTS.md (regra 11): acima disso vira aviso —
 // nunca violação; o critério de corte segue sendo o teste de deleção.
@@ -409,7 +409,7 @@ export const REGRAS = [
   {
     id: "A2",
     regra: "regra 10",
-    alvo: "AGENTS.md (projeto com package.json ou Makefile)",
+    alvo: "AGENTS.md raiz e locais (com package.json ou Makefile no mesmo diretório)",
     severidade: "aviso",
     promovivel: true,
     titulo: '"Como rodar" bate com os scripts do manifest',
@@ -742,14 +742,14 @@ function problemaDeScript(cmd, dir, scripts) {
   if (!/\b(?:npm|pnpm|yarn|bun)\s/.test(texto)) return null;
   const simples = texto.match(/^(npm|pnpm|yarn|bun)\s+(\w[\w:-]*)(?:\s+(.*))?$/);
   const parcial = "A2 não verificou este comando: use uma invocação simples no pacote correspondente ou confira manualmente seletores, opções e shell composto";
-  if (!simples || /[;&|`$\\<>]/.test(texto)) return parcial;
+  if (!simples || /[;&|`$\\<>]/.test(texto)) return { msg: parcial, parcial: true };
   const [, gerenciador, comando, resto = ""] = simples;
   const explicito = comando === "run" || (["npm", "pnpm"].includes(gerenciador) && comando === "run-script");
   if (!explicito && COMANDOS_NATIVOS[gerenciador].has(comando)) return null;
-  if (/\s(?:--(?:workspace|workspaces|prefix|filter|dir|cwd)\b|-[wCr]\b)/.test(` ${resto}`)) return parcial;
+  if (/\s(?:--(?:workspace|workspaces|prefix|filter|dir|cwd)\b|-[wCr]\b)/.test(` ${resto}`)) return { msg: parcial, parcial: true };
   if (explicito && !resto) return null; // lista scripts
   let script = explicito ? resto.split(/\s+/)[0] : comando;
-  if (script.startsWith("-") || !/^[\w:-]+$/.test(script)) return parcial;
+  if (script.startsWith("-") || !/^[\w:-]+$/.test(script)) return { msg: parcial, parcial: true };
   if (!explicito && ["npm", "pnpm"].includes(gerenciador) && ["t", "tst"].includes(script)) script = "test";
   if (typeof scripts[script] === "string" && scripts[script].trim()) return null;
   // npm e pnpm permitem start sem script quando server.js existe.
@@ -757,9 +757,9 @@ function problemaDeScript(cmd, dir, scripts) {
   // Yarn e Bun também resolvem executáveis. Sem script, declare o limite
   // da checagem em vez de afirmar que o comando não existe.
   if (["yarn", "bun"].includes(gerenciador)) {
-    return `"Como rodar" usa "${script}", ausente de scripts no package.json; A2 não resolve executáveis nem scripts de outros workspaces de ${gerenciador}`;
+    return { msg: `"Como rodar" usa "${script}", ausente de scripts no package.json; A2 não resolve executáveis nem scripts de outros workspaces de ${gerenciador}`, parcial: true };
   }
-  return `"Como rodar" usa o script "${script}", ausente ou vazio em scripts no package.json`;
+  return { msg: `"Como rodar" usa o script "${script}", ausente ou vazio em scripts no package.json`, parcial: false };
 }
 
 // A1..A8: o que os documentos afirmam sobre o repositório bate com o
@@ -780,9 +780,43 @@ const MANIFESTS_CONHECIDOS = [
   "build.gradle",
 ];
 
-async function ancoragem(dir, docs, sombras, achar) {
+function ancorarComandos(dir, nome, original, contrato, manifest, achar, cobrir) {
+  if (!contrato) return;
+  const rodar = secoes(contrato).find((s) => /^Como rodar/.test(s.titulo));
+  if (!rodar || !original) return;
+  const bruto = corpoOriginal(original, rodar, secoes(contrato));
+  let linhasDeComando = 0;
+  for (const bloco of bruto.matchAll(/```[^\n]*\n([\s\S]*?)```/g)) {
+    for (const linha of bloco[1].split("\n")) {
+      const cmd = linha.replace(/\s+#.*$/, "").trim();
+      if (!cmd || cmd.startsWith("#")) continue;
+      linhasDeComando++;
+      if (manifest.scripts && /\b(?:npm|pnpm|yarn|bun)\s/.test(cmd)) {
+        const problema = problemaDeScript(cmd, dir, manifest.scripts);
+        cobrir("A2", nome, problema?.parcial ? problema.msg : undefined,
+          problema?.parcial ? "parcial" : "executada");
+        if (problema) achar(nome, rodar.linha, "A2", problema.msg);
+        continue;
+      }
+      const make = cmd.match(/^make\s+([\w.-]+)/);
+      if (make && manifest.alvosMake) {
+        cobrir("A2", nome);
+        if (!manifest.alvosMake.has(make[1])) {
+          achar(nome, rodar.linha, "A2", `"Como rodar" usa o alvo make "${make[1]}", ausente do Makefile`);
+        }
+        continue;
+      }
+      cobrir("A2", nome, `${nome}: comando sem comparação com manifest compatível: ${cmd}`, "nao_executada");
+    }
+  }
+  if (!linhasDeComando) cobrir("A2", nome,
+    `${nome}: Como rodar não contém comandos em bloco de código`, "nao_executada");
+}
+
+async function ancoragem(dir, docs, sombras, achar, cobrir) {
   const contrato = sombras["AGENTS.md"];
   const manifest = await lerManifests(dir);
+  if (contrato) cobrir("A0", "AGENTS.md");
 
   // --- A0: o projeto tem manifest que a ancoragem não sabe ler? ---
   if (contrato && !MANIFESTS_COBERTOS.some((m) => existsSync(path.join(dir, m)))) {
@@ -794,7 +828,7 @@ async function ancoragem(dir, docs, sombras, achar) {
         "AGENTS.md",
         1,
         "A0",
-        `o projeto usa ${presentes.join(", ")}; A2 (Como rodar) e A3 (versões da Stack) só comparam contra package.json e Makefile, então não rodaram aqui`,
+        `o projeto usa ${presentes.join(", ")}; A2 (Como rodar) e A3 (versões da Stack) só comparam contra package.json e Makefile, então não rodaram neste diretório`,
       );
     }
   }
@@ -807,6 +841,7 @@ async function ancoragem(dir, docs, sombras, achar) {
       const bruto = corpoOriginal(docs["AGENTS.md"], est, secs);
       const dentro = bruto.match(/```[^\n]*\n([\s\S]*?)```/);
       if (dentro) {
+        cobrir("A1", "AGENTS.md");
         const pilha = [];
         for (const linhaBruta of dentro[1].split("\n")) {
           if (!linhaBruta.trim()) continue;
@@ -833,30 +868,10 @@ async function ancoragem(dir, docs, sombras, achar) {
     }
   }
 
-  // --- A2: os comandos de "Como rodar" existem nos scripts do manifest ---
-  if (contrato && (manifest.scripts || manifest.alvosMake)) {
-    const rodar = secoes(contrato).find((s) => /^Como rodar/.test(s.titulo));
-    if (rodar && docs["AGENTS.md"]) {
-      const secs = secoes(contrato);
-      const bruto = corpoOriginal(docs["AGENTS.md"], rodar, secs);
-      for (const bloco of bruto.matchAll(/```[^\n]*\n([\s\S]*?)```/g)) {
-        for (const cmd of bloco[1].split("\n")) {
-          if (manifest.scripts) {
-            const problema = problemaDeScript(cmd, dir, manifest.scripts);
-            if (problema) achar("AGENTS.md", rodar.linha, "A2", problema);
-          }
-          const make = cmd.match(/^\s*make\s+([\w.-]+)/);
-          if (make && manifest.alvosMake && !manifest.alvosMake.has(make[1])) {
-            achar(
-              "AGENTS.md",
-              rodar.linha,
-              "A2",
-              `"Como rodar" usa o alvo make "${make[1]}", ausente do Makefile`,
-            );
-          }
-        }
-      }
-    }
+  ancorarComandos(dir, "AGENTS.md", docs["AGENTS.md"], contrato, manifest, achar, cobrir);
+  for (const nome of Object.keys(docs).filter((n) => n.endsWith("/AGENTS.md"))) {
+    const pasta = path.dirname(path.join(dir, nome));
+    ancorarComandos(pasta, nome, docs[nome], sombras[nome], await lerManifests(pasta), achar, cobrir);
   }
 
   // --- A3: as versões da tabela Stack batem com o manifest ---
@@ -869,6 +884,7 @@ async function ancoragem(dir, docs, sombras, achar) {
       };
       const noNode = stack.corpo.match(/\bnode[^|\n]*?(\d+)/i);
       const engNode = manifest.engines?.node && maior(manifest.engines.node);
+      if (noNode && engNode) cobrir("A3", "AGENTS.md");
       if (noNode && engNode && noNode[1] !== engNode) {
         achar(
           "AGENTS.md",
@@ -881,6 +897,7 @@ async function ancoragem(dir, docs, sombras, achar) {
         const esc = dep.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
         const citado = stack.corpo.match(new RegExp(`${esc}[^|\\n]*?(\\d+)`, "i"));
         const real = maior(faixa);
+        if (citado && real) cobrir("A3", "AGENTS.md");
         if (citado && real && citado[1] !== real) {
           achar(
             "AGENTS.md",
@@ -903,6 +920,7 @@ async function ancoragem(dir, docs, sombras, achar) {
     );
     for (const s of secoes(contrato).filter((x) => /env|segredo/i.test(x.titulo))) {
       for (const m of s.corpo.matchAll(/`([A-Z][A-Z0-9_]{2,})`/g)) {
+        cobrir("A4", "AGENTS.md");
         if (!declarados.has(m[1])) {
           achar(
             "AGENTS.md",
@@ -944,6 +962,7 @@ async function ancoragem(dir, docs, sombras, achar) {
     const ref = linha.match(MARCADOR)[1];
     const nLinha = md.split("\n").findIndex((l) => l.trim() === linha) + 1;
     if (/^[0-9a-f]{7,40}$/.test(ref)) {
+      cobrir("A6", nome);
       try {
         const saida = execFileSync("git", ["log", "--oneline", `${ref}..HEAD`], {
           cwd: dir,
@@ -987,6 +1006,7 @@ async function ancoragem(dir, docs, sombras, achar) {
     } catch {
       /* docs/ ilegível não é problema da gramática */
     }
+    cobrir("A7", "docs/");
     const indice = docs["docs/README.md"] ?? null;
     const corpos = Object.values(sombras).join("\n");
     for (const f of arquivos) {
@@ -1037,6 +1057,7 @@ async function ancoragem(dir, docs, sombras, achar) {
         if (!existsSync(alvo) || (await lstat(alvo)).isSymbolicLink()) continue;
         const md = semFences(await readFile(alvo, "utf8"));
         const rel = `${base}/${p.name}/AGENTS.md`;
+        cobrir("A8", rel);
         const ouro = secoes(md).find((s) => /^Regra de ouro/.test(s.titulo));
         const fraseLocal = ouro?.corpo.match(/\*\*([^*]+)\*\*/)?.[1]?.trim();
         if (frase && fraseLocal && frase === fraseLocal) {
@@ -1070,6 +1091,7 @@ async function ancoragem(dir, docs, sombras, achar) {
     let entrada;
     try { entrada = await lstat(alvo); }
     catch (e) { if (e.code === "ENOENT") continue; throw e; }
+    cobrir("A9", ponte);
     let valida = false;
     try {
       valida = entrada.isSymbolicLink()
@@ -1080,17 +1102,51 @@ async function ancoragem(dir, docs, sombras, achar) {
   }
 }
 
-// Estado do doc-set em forma legível por máquina. O parsing já existe para as
-// checagens; isto só o expõe, para que a skill e scripts do usuário
-// leiam estrutura em vez de reparsear prosa.
-export async function estado(dir) {
+async function lerDocumentos(dir) {
   const docs = {};
   for (const nome of ARQUIVOS) {
     const p = path.join(dir, nome);
     if (!existsSync(p)) continue;
-    if ((await lstat(p)).isSymbolicLink()) continue;
-    docs[nome] = semFences(await readFile(p, "utf8"));
+    if ((await lstat(p)).isSymbolicLink()) continue; // espelho, não documento
+    docs[nome] = await readFile(p, "utf8");
   }
+  if (Object.keys(docs).length === 0) return docs;
+
+  // Satélites e contratos locais recebem as regras comuns, sem herdar as
+  // seções obrigatórias do contrato raiz. Não siga symlinks: espelhos não
+  // devem duplicar achados nem levar a caminhada para fora do projeto.
+  async function coletar(rel, contratos = false) {
+    let entradas;
+    try {
+      const pasta = path.join(dir, rel);
+      if ((await lstat(pasta)).isSymbolicLink()) return;
+      entradas = await readdir(pasta, { withFileTypes: true });
+    } catch (e) {
+      if (e.code === "ENOENT") return;
+      throw e;
+    }
+    for (const entrada of entradas.sort((a, b) => a.name.localeCompare(b.name))) {
+      if (PASTAS_FORA_DO_INDICE.has(entrada.name)) continue;
+      const nome = `${rel}/${entrada.name}`;
+      if (entrada.isDirectory()) await coletar(nome, contratos);
+      else if (entrada.isFile() && (contratos ? entrada.name === "AGENTS.md" : entrada.name.endsWith(".md"))) {
+        docs[nome] = await readFile(path.join(dir, nome), "utf8");
+      }
+    }
+  }
+  await coletar("docs");
+  await coletar("packages", true);
+  await coletar("apps", true);
+
+  return docs;
+}
+
+// Estado do doc-set em forma legível por máquina. O parsing já existe para as
+// checagens; isto só o expõe, para que a skill e scripts do usuário
+// leiam estrutura em vez de reparsear prosa.
+export async function estado(dir) {
+  const docs = Object.fromEntries(Object.entries(await lerDocumentos(dir))
+    .map(([nome, md]) => [nome, semFences(md)]));
   if (Object.keys(docs).length === 0) return null;
 
   const out = {
@@ -1134,7 +1190,8 @@ export async function estado(dir) {
         if (t) out.decisoes_pendentes.push({ arquivo: nome, decisao: t[1] });
       }
     }
-    const m = md.split("\n").find((l) => MARCADOR.test(l.trim()));
+    const donoMarcador = docs["PLAN.md"] ? "PLAN.md" : "AGENTS.md";
+    const m = nome === donoMarcador && md.split("\n").find((l) => MARCADOR.test(l.trim()));
     if (m) {
       const [, ref] = m.trim().match(MARCADOR);
       out.marcador = { arquivo: nome, ref, commits_desde: null };
@@ -1160,6 +1217,45 @@ export async function estado(dir) {
   }
 
   return out;
+}
+
+function criarCobertura() {
+  const motivos = {
+    F: "SPEC.md ausente ou sem a seção aplicável.",
+    C: "AGENTS.md raiz ausente ou sem a seção aplicável.",
+    T: "PLAN.md ou referências necessárias ausentes.",
+    D: "Documento, seção ou referências de domínio ausentes.",
+    H: "Documento ou seção aplicável ausente.",
+    J: "Não há documentos ou seções para comparar.",
+    A0: "Contrato raiz ausente.",
+    A1: "Contrato raiz sem árvore de Estrutura em bloco de código.",
+    A2: "Sem comandos reconhecidos em Como rodar e manifest compatível no mesmo diretório.",
+    A3: "Sem versões comparáveis entre Stack e package.json da raiz.",
+    A4: "Sem variáveis citadas na seção de ambiente e .env.example da raiz.",
+    A6: "Sem marcador Git verificável na raiz do repositório (data não é commit).",
+    A7: "Sem diretório docs/ regular para conferir índice e ponteiros.",
+    A8: "Sem contrato raiz e contratos imediatos de packages/ ou apps/ para comparar.",
+    A9: "Nenhuma ponte CLAUDE.md encontrada junto aos contratos lidos.",
+    V: "Contrato raiz ausente.",
+  };
+  const dados = new Map(REGRAS.map(({ id }) => [id, {
+    id, status: "nao_executada", arquivos: [],
+    motivos: [motivos[id] ?? motivos[id[0]] ?? "Sem conteúdo aplicável."],
+    supressoes: [],
+  }]));
+  const iniciadas = new Set();
+  function registrar(ids, arquivo, motivo, status = "executada") {
+    for (const id of ids.split(" ")) {
+      const item = dados.get(id);
+      if (!item) throw new Error(`cobertura fora do catálogo: ${id}`);
+      if (!iniciadas.has(id)) {
+        iniciadas.add(id); item.status = status; item.motivos = [];
+      } else if (item.status !== status) item.status = "parcial";
+      if (arquivo && !item.arquivos.includes(arquivo)) item.arquivos.push(arquivo);
+      if (motivo && !item.motivos.includes(motivo)) item.motivos.push(motivo);
+    }
+  }
+  return { registrar, dados };
 }
 
 export async function verificar(dir, opcoes = {}) {
@@ -1189,48 +1285,17 @@ export async function verificar(dir, opcoes = {}) {
     }
   }
 
-  const docs = {};
-  for (const nome of ARQUIVOS) {
-    const p = path.join(dir, nome);
-    if (!existsSync(p)) continue;
-    if ((await lstat(p)).isSymbolicLink()) continue; // espelho, não documento
-    docs[nome] = await readFile(p, "utf8");
-  }
+  const docs = await lerDocumentos(dir);
   if (Object.keys(docs).length === 0) {
     throw new Error(
       `nenhum arquivo da gramática (${ARQUIVOS.join(", ")}) em ${dir}`,
     );
   }
 
-  // Satélites e contratos locais recebem as regras comuns, sem herdar as
-  // seções obrigatórias do contrato raiz. Não siga symlinks: espelhos não
-  // devem duplicar achados nem levar a caminhada para fora do projeto.
-  async function coletar(rel, contratos = false) {
-    let entradas;
-    try {
-      const pasta = path.join(dir, rel);
-      if ((await lstat(pasta)).isSymbolicLink()) return;
-      entradas = await readdir(pasta, { withFileTypes: true });
-    } catch (e) {
-      if (e.code === "ENOENT") return;
-      throw e;
-    }
-    for (const entrada of entradas) {
-      if (PASTAS_FORA_DO_INDICE.has(entrada.name)) continue;
-      const nome = `${rel}/${entrada.name}`;
-      if (entrada.isDirectory()) await coletar(nome, contratos);
-      else if (entrada.isFile() && (contratos ? entrada.name === "AGENTS.md" : entrada.name.endsWith(".md"))) {
-        docs[nome] = await readFile(path.join(dir, nome), "utf8");
-      }
-    }
-  }
-  await coletar("docs");
-  await coletar("packages", true);
-  await coletar("apps", true);
-
   // Um achado carrega o id do catálogo; a severidade sai de REGRAS, nunca da
   // chamada — é o que impede um check novo escapar do catálogo. Sob --strict,
   // as famílias que dependem de calibração (H, J, A) sobem para violação.
+  const { registrar: cobrir, dados: cobertura } = criarCobertura();
   const achados = [];
   const achar = (arquivo, linha, id, msg) => {
     const r = REGRA[id];
@@ -1262,6 +1327,10 @@ export async function verificar(dir, opcoes = {}) {
 
   // --- invariantes comuns a todos os arquivos ---
   for (const [nome, md] of Object.entries(sombras)) {
+    cobrir("E1 E2 E3 E5 H1 H3 S1 A5", nome);
+    if (secoes(md).some((s) => s.titulo.startsWith("Decisões em aberto"))) {
+      cobrir("E4 H2 J1", nome);
+    }
     if (blockquoteDePapel(md) === null) {
       achar(
         nome,
@@ -1322,6 +1391,7 @@ export async function verificar(dir, opcoes = {}) {
   // --- SPEC.md: fronteira presente/futuro (regra 1) ---
   const spec = sombras["SPEC.md"];
   if (spec) {
+    cobrir("F1 F3", "SPEC.md");
     const papel = blockquoteDePapel(spec);
     const planejado = secao(spec, "Planejado");
     if (papel !== null && (
@@ -1335,6 +1405,7 @@ export async function verificar(dir, opcoes = {}) {
       );
     }
     if (planejado) {
+      cobrir("F2", "SPEC.md");
       const primeira = linhas(planejado.corpo).find((l) => l.trim() !== "");
       if (!primeira || !primeira.startsWith(">")) {
         achar(
@@ -1357,7 +1428,9 @@ export async function verificar(dir, opcoes = {}) {
   // --- AGENTS.md: regra de ouro (2), Nunca fazer (3), estado explícito (5) ---
   const contrato = sombras["AGENTS.md"];
   if (contrato) {
+    cobrir("C1 C5 V1", "AGENTS.md");
     const ouro = secao(contrato, "Regra de ouro");
+    if (ouro) cobrir("C2", "AGENTS.md");
     if (!ouro) {
       achar("AGENTS.md", 1, "C1", 'sem seção "Regra de ouro" (regra 3)');
     } else if (!/\*\*[^*]+\*\*/.test(ouro.corpo)) {
@@ -1370,6 +1443,7 @@ export async function verificar(dir, opcoes = {}) {
     }
     const nunca = secao(contrato, "Nunca fazer");
     if (nunca) {
+      cobrir("C3 C4", "AGENTS.md");
       const itens = bullets(nunca);
       if (itens.length === 0) {
         achar(
@@ -1423,6 +1497,8 @@ export async function verificar(dir, opcoes = {}) {
   const plan = sombras["PLAN.md"];
   const idsDeTarefa = new Set();
   if (plan) {
+    cobrir("T1 T2 H4", "PLAN.md");
+    if (modulosDoContrato !== null) cobrir("T3", "PLAN.md");
     linhas(plan).forEach((l, i) => {
       const t = l.match(/^- \[( |x)\] (T\d+\.\d+) — /);
       if (!t) return;
@@ -1453,6 +1529,7 @@ export async function verificar(dir, opcoes = {}) {
     });
     const riscos = secao(plan, "Riscos");
     if (riscos && spec) {
+      cobrir("T4", "PLAN.md");
       const constraints = secao(spec, "Constraints");
       const numeros = new Set(
         constraints
@@ -1477,6 +1554,7 @@ export async function verificar(dir, opcoes = {}) {
   // apontar tarefa de fase já compactada do PLAN.
   if (plan) {
     for (const [nome, md] of Object.entries(sombras)) {
+      cobrir("T5", nome);
       for (const s of secoes(md).filter((s) =>
         s.titulo.startsWith("Decisões em aberto"),
       )) {
@@ -1498,8 +1576,8 @@ export async function verificar(dir, opcoes = {}) {
 
   // --- H: presente permanente (regra 2) · J: jurisdição (regra 8) ---
   //
-  // Famílias que entram como aviso: dependem de calibração por projeto, e um
-  // doc-set escrito na v4 acende várias no primeiro contato. --strict promove.
+  // Estas famílias dependem de calibração por projeto. --strict promove
+  // seus avisos a violações.
 
   // H2 primeiro: as linhas que ele acusa não voltam a ser acusadas por H1 —
   // uma decisão resolvida datada é um problema só, resolvido por um corte só.
@@ -1562,6 +1640,7 @@ export async function verificar(dir, opcoes = {}) {
 
   for (const nome of ["SPEC.md", "PLAN.md"]) {
     if (!docs[nome]) continue;
+    cobrir("H5", nome);
     const n = linhas(docs[nome]).length;
     if (n > LIMITE_SPEC_PLAN) {
       achar(
@@ -1631,6 +1710,7 @@ export async function verificar(dir, opcoes = {}) {
   for (const d of DONOS) {
     if (!secaoDe(d.dono, d.prefixo)) continue;
     for (const intruso of d.intrusos) {
+      if (sombras[intruso]) cobrir("J2", intruso);
       const s = secaoDe(intruso, d.prefixo);
       if (!s) continue;
       if (d.soComVersao && !/\d+\.\d+|≥\s*\d|\bv\d+\b/.test(s.corpo)) continue;
@@ -1649,6 +1729,7 @@ export async function verificar(dir, opcoes = {}) {
   if (domain) {
     const secInv = secoes(domain).find((s) => /^Invariantes/.test(s.titulo));
     if (secInv) {
+      cobrir("D1", "DOMAIN.md");
       linhas(secInv.corpo).forEach((l, i) => {
         if (!/^\s*(\d+\.|-)\s/.test(l)) return;
         const id = l.match(/\bI(\d+)\b/);
@@ -1667,6 +1748,7 @@ export async function verificar(dir, opcoes = {}) {
     // O glossário define termos; comportamento de feature é do SPEC (regra 8).
     const secGloss = secoes(domain).find((s) => /^Gloss/.test(s.titulo));
     if (secGloss) {
+      cobrir("D3", "DOMAIN.md");
       for (const b of bullets(secGloss)) {
         if (/\b(o usu[áa]rio clica|o sistema (envia|valida|processa)|ao clicar|endpoint|tela de)\b/i.test(b.texto)) {
           achar(
@@ -1683,6 +1765,7 @@ export async function verificar(dir, opcoes = {}) {
   for (const nome of ["SPEC.md", "PLAN.md"]) {
     const md = sombras[nome];
     if (!md) continue;
+    cobrir("D2", nome);
     linhas(md).forEach((l, i) => {
       for (const m of l.matchAll(/\bI(\d+)\b/g)) {
         if (!invariantes.has(`I${m[1]}`)) {
@@ -1697,7 +1780,7 @@ export async function verificar(dir, opcoes = {}) {
     });
   }
 
-  await ancoragem(dir, docs, sombras, achar);
+  await ancoragem(dir, docs, sombras, achar, cobrir);
 
   // --- supressão justificada ---
   // <!-- docscheck: ignore <ID> — <motivo> --> silencia um id naquele arquivo.
@@ -1715,6 +1798,7 @@ export async function verificar(dir, opcoes = {}) {
         achar(nome, i + 1, "S1", `supressão de ${m[1]} sem motivo na linha`);
       } else {
         suprimido.add(`${nome}:${m[1]}`);
+        cobertura.get(m[1]).supressoes.push({ arquivo: nome, motivo });
       }
     });
   }
@@ -1727,6 +1811,7 @@ export async function verificar(dir, opcoes = {}) {
     violacoes: achados.filter((a) => a.severidade === "violacao"),
     avisos: achados.filter((a) => a.severidade === "aviso"),
     arquivos: Object.keys(docs),
+    cobertura: [...cobertura.values()],
   };
 }
 
@@ -1847,6 +1932,7 @@ async function main() {
       violacoes: r.violacoes.length,
       avisos: r.avisos.length,
       arquivos: r.arquivos,
+      cobertura: r.cobertura,
       achados: [...r.violacoes, ...r.avisos],
     });
   }

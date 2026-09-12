@@ -124,11 +124,9 @@ AGENTS.md — a decisão resolvida não vira `[x]`; ela vira o que produziu:
 Nenhuma pendente.
 ```
 
-> _Aqui está o corte com a v4. Antes, esta seção guardaria
-> `- [x] **Formato do relatório** — resolvido: texto simples (rodada fase-1)`
-> para sempre. O que muda o comportamento de um agente é a convenção; o
-> registro de que houve uma decisão, não. Se ela reaparecer numa conversa, o
-> `git log` responde._
+> A decisão resolvida vira a convenção sobre formato do relatório. A seção de
+> pendências fica com “Nenhuma pendente”; o registro da decisão pode ser
+> consultado no `git log`.
 
 Checagens de entrega: `docscheck` limpo, inclusive `--strict` (os dois avisos `H4`
 foram tratados, não silenciados); a fronteira presente/futuro permanece

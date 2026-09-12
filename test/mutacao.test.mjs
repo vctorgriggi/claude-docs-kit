@@ -201,6 +201,10 @@ test("todo caso de mutação faz a sua regra acusar", async () => {
       await mutar(dir);
       const r = await verificar(dir, { strict: true });
       const acusados = new Set([...r.violacoes, ...r.avisos].map((v) => v.id));
+      for (const acusado of acusados) {
+        assert.notEqual(r.cobertura.find((c) => c.id === acusado)?.status, "nao_executada",
+          `${acusado}: gerou achado, mas a cobertura não registra execução`);
+      }
       if (!acusados.has(id)) {
         const outros = [...acusados].join(", ") || "nada";
         mudas.push(`${id} (a mutação passou; acusou: ${outros})`);

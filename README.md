@@ -156,9 +156,26 @@ A configuração aceita somente `strict` booleano; tipos incorretos e opções
 desconhecidas são erros de uso, inclusive quando `--strict` é passado no CLI.
 Uma supressão exige motivo: `<!-- docscheck: ignore A3 — motivo -->`.
 
+O JSON inclui `cobertura`, com uma entrada por regra do catálogo:
+
+| Campo | Significado |
+| --- | --- |
+| `status` | `executada`, `parcial` ou `nao_executada` |
+| `arquivos` | Arquivos ou diretórios considerados naquela regra |
+| `motivos` | Limites encontrados ou pré-requisitos ausentes |
+| `supressoes` | Arquivo e justificativa das supressões declaradas |
+
+`executada` significa que a checagem mecânica rodou dentro de seu escopo;
+não significa aprovação nem validação semântica. Consulte também `violacoes`
+e `avisos`. `parcial` indica limitações ou uma mistura de entradas verificadas
+e não verificadas. A cobertura é informativa e não altera o exit code.
+No panorama com vários projetos, cada item de `doc_sets` traz sua cobertura.
+
 As regras comuns também percorrem Markdown em `docs/` e contratos locais em
 `packages/` e `apps/`. A ponte `CLAUDE.md` não duplica o contrato no verificador.
-A ancoragem de comandos e versões compara `package.json` e `Makefile`; A0
+A2 compara comandos com `package.json` e `Makefile` do mesmo diretório de
+cada `AGENTS.md`, inclusive nos pacotes. A comparação de versões (A3) permanece
+na raiz. A0
 informa quando encontra um ecossistema conhecido que não cobre. As demais
 checagens de ancoragem não dependem da linguagem do código.
 
@@ -176,7 +193,11 @@ não são validados como scripts.
 O resultado é uma verificação estrutural e heurística. Não comprova que toda
 regra foi respeitada pela implementação; a auditoria acrescenta a leitura do
 código e o julgamento. O estado é consultado explicitamente com `docs estado`
-ou `docscheck --estado`; não há hook específico de agente.
+ou `docscheck --estado`; não há hook específico de agente. O estado reúne
+pendências dos documentos da raiz, de `docs/` e dos contratos locais em
+`packages/` e `apps/`, identificando o arquivo de origem. A fase e as tarefas
+vêm do PLAN raiz; o marcador vem dele ou do AGENTS raiz quando não há PLAN.
+A leitura ignora symlinks de documentos e diretórios para evitar duplicação.
 
 ## CI e manutenção
 

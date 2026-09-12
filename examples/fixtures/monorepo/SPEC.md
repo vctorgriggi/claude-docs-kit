@@ -77,4 +77,5 @@ num projeto vazio e calcular, sem o monorepo.
 ## Decisões em aberto (a confirmar)
 
 - [ ] **Escopo público ou registry interno** — público simplifica o consumo e
-      expõe a tabela de faixas; sem decisão de negócio ainda (afeta T2.2).
+      expõe a tabela de faixas; sem decisão de negócio ainda
+      (afeta a Fase 3 — Publicação no registry do PLAN.md).

@@ -18,7 +18,10 @@ Rode `node "$DOCS_KIT/bin/docscheck.mjs" --json .` e use a saída como base do
 relatório — não reimplemente as checagens dele à mão e não parafraseie as
 mensagens. Cada achado traz `id`, `arquivo`, `linha`, `severidade` e `msg`;
 `--explain <id>` dá o porquê e os exemplos quando você precisar explicar um
-achado ao usuário.
+achado ao usuário. Leia também `cobertura`: informe limitações relevantes das
+regras parciais ou não executadas e as supressões que afetam a conclusão.
+Ausência de achados só sustenta um veredito sobre a parte avaliada; não
+apresente uma checagem não executada como aprovada.
 
 Sem o script instalado, diga isso em uma linha e siga só com a camada de
 julgamento, avisando que a cobertura está reduzida.

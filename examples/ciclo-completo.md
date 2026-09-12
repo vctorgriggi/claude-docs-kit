@@ -100,8 +100,8 @@ O resultado: a Fase 2 **sai do PLAN**, o que ela construiu passa a ser descrito
 no SPEC no presente, a Fase 3 ganha detalhe por tarefa, e o marcador é
 recarimbado. O PLAN termina a semana **menor** do que começou.
 
-> Detalhe em [05-rodada](05-rodada.md), com a tabela de conversão e o corte com
-> a v4 no tratamento de decisão resolvida.
+> Detalhe em [05-rodada](05-rodada.md), com a tabela de conversão e o
+> tratamento das decisões resolvidas.
 
 ## E fora do ciclo
 

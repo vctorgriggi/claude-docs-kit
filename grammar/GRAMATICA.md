@@ -5,7 +5,7 @@
 > `docscheck` verifica. Os comandos leem este arquivo no início de cada
 > invocação — é a fonte única da gramática, e nenhum comando a parafraseia.
 
-Versão da gramática: v8. Incremente a cada mudança de convenção; a constante
+Versão da gramática: v9. Incremente a cada mudança de convenção; a constante
 `GRAMATICA` de `bin/docscheck.mjs` acompanha (o teste do kit acusa
 divergência). Regere as tabelas e valide conforme o README. A instalação
 por links usa diretamente esta fonte.
@@ -189,6 +189,11 @@ por projeto — história (`H`), jurisdição (`J`) e ancoragem doc↔código (`
 entram como aviso e só viram violação com `--strict` ou com
 `{"strict": true}` no `.docscheck.json` do repositório.
 
+O resultado JSON registra a cobertura por regra: execução, execução parcial ou
+não execução, com os arquivos considerados, motivos e supressões declaradas.
+Esse registro não muda severidades nem comprova correção semântica; ausência
+de achados precisa ser lida junto dos limites de cobertura.
+
 <!-- REGRAS:início — tabela gerada por scripts/gerar-gramatica.mjs; não editar à mão -->
 
 | id | regra | alvo | severidade | verifica |
@@ -223,7 +228,7 @@ entram como aviso e só viram violação com `--strict` ou com
 | `J2` | regra 8 | todos | aviso | fato de dono único não é repetido fora do dono |
 | `A0` | regra 10 | manifest do projeto | aviso | a ancoragem alcança o ecossistema do projeto |
 | `A1` | regra 10 | AGENTS.md | aviso | as pastas da árvore Estrutura existem no disco |
-| `A2` | regra 10 | AGENTS.md (projeto com package.json ou Makefile) | aviso | "Como rodar" bate com os scripts do manifest |
+| `A2` | regra 10 | AGENTS.md raiz e locais (com package.json ou Makefile no mesmo diretório) | aviso | "Como rodar" bate com os scripts do manifest |
 | `A3` | regra 10 | AGENTS.md (projeto com package.json) | aviso | as versões da tabela Stack batem com o manifest |
 | `A4` | regra 10 | AGENTS.md | aviso | os nomes de env citados existem no .env.example |
 | `A5` | regra 10 | todos | aviso | os caminhos de arquivo citados nos documentos existem, inteiros ou como sufixo de um caminho do repositório |
